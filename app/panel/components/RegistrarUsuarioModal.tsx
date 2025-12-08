@@ -64,7 +64,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
     }
 
     try {
-      const response = await fetch('http://localhost:3000/usuarios/addUsu', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/addUsu`, {
         method: 'POST',
         credentials: 'include',
         headers: {

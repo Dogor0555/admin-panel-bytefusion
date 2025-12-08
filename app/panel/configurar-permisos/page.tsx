@@ -119,7 +119,7 @@ export default function ConfigurarPermisosPage() {
       setError("");
 
       // Cargar catálogo de permisos
-      const permisosResponse = await fetch('http://localhost:3000/permisos-catalogo/getAll', {
+      const permisosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/permisos-catalogo/getAll`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export default function ConfigurarPermisosPage() {
       const permisosData = await permisosResponse.json();
       setPermisosCatalogo(permisosData);
 
-      const detalleResponse = await fetch(`http://localhost:3000/detalle-usuario/usuario/${usuarioId}`, {
+      const detalleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/detalle-usuario/usuario/${usuarioId}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function ConfigurarPermisosPage() {
         }
       }
 
-      const limitesResponse = await fetch(`http://localhost:3000/limites-emision/usuario/${usuarioId}`, {
+      const limitesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/limites-emision/usuario/${usuarioId}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ export default function ConfigurarPermisosPage() {
         }
       }
 
-      const sucursalesResponse = await fetch(`http://localhost:3000/sucursal/usuario/${usuarioId}`, {
+      const sucursalesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/usuario/${usuarioId}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ export default function ConfigurarPermisosPage() {
     setGuardando(true);
     setError("");
     try {
-      const response = await fetch('http://localhost:3000/sucursal/create', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/create`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -245,7 +245,7 @@ export default function ConfigurarPermisosPage() {
     setGuardando(true);
     setError("");
     try {
-      const response = await fetch('http://localhost:3000/empleados/add', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/add`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -322,7 +322,7 @@ export default function ConfigurarPermisosPage() {
       let response;
 
       if (limiteUsuario) {
-        response = await fetch(`http://localhost:3000/limites-emision/${limiteUsuario.id_limite}`, {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/limites-emision/${limiteUsuario.id_limite}`, {
           method: 'PUT',
           credentials: 'include',
           headers: {
@@ -331,7 +331,7 @@ export default function ConfigurarPermisosPage() {
           body: JSON.stringify(datosLimite),
         });
       } else {
-        response = await fetch('http://localhost:3000/limites-emision', {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/limites-emision`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -383,7 +383,7 @@ export default function ConfigurarPermisosPage() {
         activo: !limiteUsuario.activo
       };
 
-      const response = await fetch(`http://localhost:3000/limites-emision/${limiteUsuario.id_limite}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/limites-emision/${limiteUsuario.id_limite}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -416,7 +416,7 @@ export default function ConfigurarPermisosPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/limites-emision/${limiteUsuario.id_limite}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/limites-emision/${limiteUsuario.id_limite}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -461,7 +461,7 @@ export default function ConfigurarPermisosPage() {
       let response;
       
       if (detalleUsuario?.id_detalle && detalleUsuario.id_detalle > 0) {
-        response = await fetch(`http://localhost:3000/detalle-usuario/update/${detalleUsuario.id_detalle}`, {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/detalle-usuario/update/${detalleUsuario.id_detalle}`, {
           method: 'PUT',
           credentials: 'include',
           headers: {
@@ -470,7 +470,7 @@ export default function ConfigurarPermisosPage() {
           body: JSON.stringify(datosActualizacion),
         });
       } else {
-        response = await fetch('http://localhost:3000/detalle-usuario/add', {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/detalle-usuario/add`, {
           method: 'POST',
           credentials: 'include',
           headers: {
