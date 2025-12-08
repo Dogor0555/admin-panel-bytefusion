@@ -1,7 +1,7 @@
-// app/panel/panelPage.tsx - Client Component
 "use client";
 
 import { useState, useMemo } from "react";
+import RegistrarUsuarioModal from "./components/RegistrarUsuarioModal";
 import { useRouter } from "next/navigation";
 
 interface DetalleUsuario {
@@ -45,8 +45,8 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Filtrar usuarios basado en el término de búsqueda
   const filteredUsuarios = useMemo(() => {
     if (!searchTerm.trim()) return usuarios;
     
@@ -65,7 +65,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
     setError("");
     
     try {
-      // Navegar a la página de configuración de permisos
       router.push(`/panel/configurar-permisos?usuarioId=${usuario.id}`);
       
     } catch (err: unknown) {
@@ -77,19 +76,33 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <RegistrarUsuarioModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUserAdded={() => router.refresh()}
+      />
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Panel de Configuración
-          </h1>
-          <p className="mt-2 text-lg text-gray-600">
-            Selecciona el usuario que deseas configurar
-          </p>
+        <div className="flex items-center justify-between mb-12">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Panel de Usuarios
+            </h1>
+            <p className="mt-2 text-lg text-gray-600">
+              Gestiona los usuarios del sistema.
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Registrar Nuevo Usuario
+            </button>
+          </div>
         </div>
 
-        {/* Buscador */}
         <div className="mb-8 max-w-2xl mx-auto">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -110,7 +123,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
           </div>
         </div>
 
-        {/* Mensaje de error */}
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-8 max-w-4xl mx-auto">
             <div className="flex">
@@ -131,7 +143,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
           </div>
         )}
 
-        {/* Lista de usuarios */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg max-w-6xl mx-auto">
           {filteredUsuarios.length === 0 ? (
             <div className="text-center py-12">
@@ -148,7 +159,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
               {filteredUsuarios.map((usuario) => (
                 <li key={usuario.id} className="px-6 py-5 hover:bg-gray-50 transition-colors duration-150">
                   <div className="flex items-center justify-between">
-                    {/* Información principal */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
@@ -178,7 +188,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
                         </div>
                       </div>
 
-                      {/* Información adicional del usuario */}
                       {(usuario.nombrecomercial || usuario.codpuntoventa) && (
                         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                           {usuario.nombrecomercial && (
@@ -197,7 +206,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
                       )}
                     </div>
 
-                    {/* Botón de configuración */}
                     <div className="ml-6 shrink-0">
                       <button
                         onClick={() => handleConfigurarUsuario(usuario)}
@@ -228,7 +236,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
           )}
         </div>
 
-        {/* Información adicional */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             Sistema de Facturación Electrónica
@@ -236,5 +243,6 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }

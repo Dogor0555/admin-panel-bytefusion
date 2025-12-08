@@ -1,4 +1,3 @@
-// app/panel/configurar-permisos/page.tsx - Client Component
 "use client";
 
 import { useState, useEffect } from "react";
@@ -37,6 +36,39 @@ interface LimiteEmision {
   actualizado_en: string;
 }
 
+interface Sucursal {
+  idsucursal: number;
+  nombre: string;
+}
+
+const initialSucursalState = {
+  nombre: "",
+  telefono: "",
+  complemento: "",
+  codestablemh: "",
+  codpuntoventamh: "",
+};
+
+const initialAdminState = {
+  nombre: "",
+  apellido: "",
+  tipodocumento: "01", // Código para DUI por defecto
+  numerodocumento: "",
+  correo: "",
+  contrasena: "",
+  telefono: "",
+  rol: "Admin",
+  idsucursal: 0,
+};
+
+const tiposDocumento = [
+  { codigo: "01", nombre: "DUI" },
+  { codigo: "02", nombre: "NIT" },
+  { codigo: "03", nombre: "Pasaporte" },
+  { codigo: "04", nombre: "Carnet de Residente" },
+  { codigo: "99", nombre: "Otro" },
+];
+
 export default function ConfigurarPermisosPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +77,12 @@ export default function ConfigurarPermisosPage() {
   const [permisosCatalogo, setPermisosCatalogo] = useState<PermisoCatalogo[]>([]);
   const [detalleUsuario, setDetalleUsuario] = useState<DetalleUsuario | null>(null);
   const [permisosSeleccionados, setPermisosSeleccionados] = useState<string[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+  const [showCrearSucursalModal, setShowCrearSucursalModal] = useState(false);
+  const [showCrearAdminModal, setShowCrearAdminModal] = useState(false);
+  const [nuevaSucursal, setNuevaSucursal] = useState(initialSucursalState);
+  const [nuevoAdmin, setNuevoAdmin] = useState(initialAdminState);
+
   const [limiteUsuario, setLimiteUsuario] = useState<LimiteEmision | null>(null);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -57,14 +95,12 @@ export default function ConfigurarPermisosPage() {
     activo: true
   });
 
-  // Cargar datos iniciales
   useEffect(() => {
     if (usuarioId) {
       cargarDatos();
     }
   }, [usuarioId]);
 
-  // Inicializar fechas del formulario límite
   useEffect(() => {
     const hoy = new Date();
     const inicio = hoy.toISOString().split('T')[0];
@@ -82,9 +118,7 @@ export default function ConfigurarPermisosPage() {
       setLoading(true);
       setError("");
 
-      console.log("Iniciando carga de datos para usuario:", usuarioId);
-
-      // Cargar catálogo de permisos CON CREDENCIALES
+      // Cargar catálogo de permisos
       const permisosResponse = await fetch('http://localhost:3000/permisos-catalogo/getAll', {
         credentials: 'include',
         headers: {
@@ -92,17 +126,13 @@ export default function ConfigurarPermisosPage() {
         }
       });
 
-      console.log("Respuesta de permisos:", permisosResponse.status, permisosResponse.statusText);
-
       if (!permisosResponse.ok) {
         throw new Error(`Error al cargar permisos: ${permisosResponse.status} ${permisosResponse.statusText}`);
       }
 
       const permisosData = await permisosResponse.json();
-      console.log("Permisos cargados:", permisosData);
       setPermisosCatalogo(permisosData);
 
-      // Cargar detalle de usuario
       const detalleResponse = await fetch(`http://localhost:3000/detalle-usuario/usuario/${usuarioId}`, {
         credentials: 'include',
         headers: {
@@ -110,15 +140,11 @@ export default function ConfigurarPermisosPage() {
         }
       });
 
-      console.log("Respuesta de detalle:", detalleResponse.status, detalleResponse.statusText);
-
       if (!detalleResponse.ok) {
-        console.log("No se encontró detalle de usuario, se creará uno nuevo");
         setDetalleUsuario(null);
         setPermisosSeleccionados([]);
       } else {
         const detalleData = await detalleResponse.json();
-        console.log("Detalle de usuario:", detalleData);
 
         if (detalleData && detalleData.length > 0) {
           const detalle = detalleData[0];
@@ -130,7 +156,6 @@ export default function ConfigurarPermisosPage() {
         }
       }
 
-      // Cargar límite del usuario (solo uno)
       const limitesResponse = await fetch(`http://localhost:3000/limites-emision/usuario/${usuarioId}`, {
         credentials: 'include',
         headers: {
@@ -138,18 +163,13 @@ export default function ConfigurarPermisosPage() {
         }
       });
 
-      console.log("Respuesta de límites:", limitesResponse.status, limitesResponse.statusText);
-
       if (limitesResponse.ok) {
         const limitesData = await limitesResponse.json();
-        console.log("Límite cargado:", limitesData);
         
         if (limitesData.success && limitesData.data && limitesData.data.length > 0) {
-          // Tomar solo el primer límite (el más reciente por el orden DESC)
           const limite = limitesData.data[0];
           setLimiteUsuario(limite);
           
-          // Cargar datos en el formulario para edición
           setFormularioLimite({
             cantidad_maxima: limite.cantidad_maxima,
             fecha_inicio: limite.fecha_inicio.split('T')[0],
@@ -161,12 +181,100 @@ export default function ConfigurarPermisosPage() {
         }
       }
 
+      const sucursalesResponse = await fetch(`http://localhost:3000/sucursal/usuario/${usuarioId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (sucursalesResponse.ok) {
+        const sucursalesData = await sucursalesResponse.json();
+        if (sucursalesData.ok) {
+          setSucursales(sucursalesData.data);
+        }
+      }
+
+
     } catch (err: unknown) {
       console.error("Error en cargarDatos:", err);
       if (err instanceof Error) setError(err.message);
       else setError("Error al cargar los datos. Verifica tu conexión y autenticación.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCrearSucursal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!usuarioId) return;
+    setGuardando(true);
+    setError("");
+    try {
+      const response = await fetch('http://localhost:3000/sucursal/create', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...nuevaSucursal, usuarioid: parseInt(usuarioId) }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear la sucursal');
+      }
+
+      await cargarDatos();
+      setShowCrearSucursalModal(false);
+      setNuevaSucursal(initialSucursalState);
+
+    } catch (err: unknown) {
+      console.error("Error al crear sucursal:", err);
+      if (err instanceof Error) setError(err.message);
+      else setError("Ocurrió un error desconocido al crear la sucursal.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleCrearAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nuevoAdmin.idsucursal === 0) {
+      setError("Debe seleccionar una sucursal para el administrador.");
+      return;
+    }
+    setGuardando(true);
+    setError("");
+    try {
+      const response = await fetch('http://localhost:3000/empleados/add', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: `${nuevoAdmin.nombre} ${nuevoAdmin.apellido}`.trim(),
+          tipodocumento: nuevoAdmin.tipodocumento,
+          numerodocumento: nuevoAdmin.numerodocumento,
+          correo: nuevoAdmin.correo,
+          contrasena: nuevoAdmin.contrasena,
+          idsucursal: nuevoAdmin.idsucursal,
+          rol: nuevoAdmin.rol,
+          estado: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear el administrador');
+      }
+
+      setShowCrearAdminModal(false);
+      setNuevoAdmin(initialAdminState);
+
+    } catch (err: unknown) {
+      console.error("Error al crear administrador:", err);
+      if (err instanceof Error) setError(err.message);
+      else setError("Ocurrió un error desconocido al crear el administrador.");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -211,13 +319,9 @@ export default function ConfigurarPermisosPage() {
         activo: formularioLimite.activo
       };
 
-      console.log("Guardando límite:", datosLimite);
-
       let response;
 
       if (limiteUsuario) {
-        // Actualizar límite existente
-        console.log("Actualizando límite existente ID:", limiteUsuario.id_limite);
         response = await fetch(`http://localhost:3000/limites-emision/${limiteUsuario.id_limite}`, {
           method: 'PUT',
           credentials: 'include',
@@ -227,8 +331,6 @@ export default function ConfigurarPermisosPage() {
           body: JSON.stringify(datosLimite),
         });
       } else {
-        // Crear nuevo límite
-        console.log("Creando nuevo límite");
         response = await fetch('http://localhost:3000/limites-emision', {
           method: 'POST',
           credentials: 'include',
@@ -239,17 +341,13 @@ export default function ConfigurarPermisosPage() {
         });
       }
 
-      console.log("Respuesta:", response.status, response.statusText);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error al guardar el límite: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log("Límite guardado exitosamente:", result);
-
-      // Recargar los datos
+      await response.json();
       await cargarDatos();
       
       setMostrarFormularioLimite(false);
@@ -259,6 +357,52 @@ export default function ConfigurarPermisosPage() {
       console.error("Error al guardar límite:", err);
       if (err instanceof Error) setError(err.message);
       else setError("Error al guardar el límite de emisión");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleToggleLimiteActivo = async () => {
+    if (!limiteUsuario) return;
+
+    if (limiteUsuario.activo) {
+      if (!confirm("¿Estás seguro de que deseas deshabilitar la emisión de DTE para este usuario? Esta acción impedirá que pueda generar nuevos documentos.")) {
+        return;
+      }
+    }
+
+    try {
+      setGuardando(true);
+      setError("");
+
+      const datosParaApi = {
+        id_usuario: limiteUsuario.id_usuario,
+        cantidad_maxima: limiteUsuario.cantidad_maxima,
+        fecha_inicio: limiteUsuario.fecha_inicio.split('T')[0],
+        fecha_fin: limiteUsuario.fecha_fin.split('T')[0],
+        activo: !limiteUsuario.activo
+      };
+
+      const response = await fetch(`http://localhost:3000/limites-emision/${limiteUsuario.id_limite}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosParaApi),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error al cambiar estado del límite: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      setLimiteUsuario(prev => prev ? { ...prev, activo: !prev.activo } : null);
+
+    } catch (err: unknown) {
+      console.error("Error al cambiar estado del límite:", err);
+      if (err instanceof Error) setError(err.message);
+      else setError("Error al cambiar el estado del límite");
     } finally {
       setGuardando(false);
     }
@@ -284,10 +428,8 @@ export default function ConfigurarPermisosPage() {
         throw new Error("Error al eliminar el límite");
       }
 
-      // Limpiar el estado
       setLimiteUsuario(null);
       
-      // Reiniciar formulario
       const hoy = new Date();
       const inicio = hoy.toISOString().split('T')[0];
       const fin = new Date(hoy.getFullYear(), hoy.getMonth() + 6, hoy.getDate()).toISOString().split('T')[0];
@@ -316,12 +458,9 @@ export default function ConfigurarPermisosPage() {
         permisos: permisosSeleccionados
       };
 
-      console.log("Guardando permisos:", datosActualizacion);
-
       let response;
       
       if (detalleUsuario?.id_detalle && detalleUsuario.id_detalle > 0) {
-        // Actualizar detalle existente
         response = await fetch(`http://localhost:3000/detalle-usuario/update/${detalleUsuario.id_detalle}`, {
           method: 'PUT',
           credentials: 'include',
@@ -331,7 +470,6 @@ export default function ConfigurarPermisosPage() {
           body: JSON.stringify(datosActualizacion),
         });
       } else {
-        // Crear nuevo detalle
         response = await fetch('http://localhost:3000/detalle-usuario/add', {
           method: 'POST',
           credentials: 'include',
@@ -342,17 +480,13 @@ export default function ConfigurarPermisosPage() {
         });
       }
 
-      console.log("Respuesta de guardado:", response.status, response.statusText);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error al guardar los permisos: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log("Permisos guardados exitosamente:", result);
-
-      // Redirigir de vuelta al panel
+      await response.json();
       router.push('/panel');
       
     } catch (err: unknown) {
@@ -373,8 +507,6 @@ export default function ConfigurarPermisosPage() {
   };
 
   const formatFecha = (fecha: string) => {
-    // Añadir 'T00:00:00' para asegurar que se interpreta como fecha local y no UTC
-    // y luego usar timeZone: 'UTC' para mostrar la fecha correcta sin corrimientos.
     const fechaUTC = new Date(fecha.split('T')[0] + 'T00:00:00');
     return fechaUTC.toLocaleDateString('es-ES', {
       day: '2-digit',
@@ -417,7 +549,6 @@ export default function ConfigurarPermisosPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="bg-white shadow rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -446,9 +577,22 @@ export default function ConfigurarPermisosPage() {
               </button>
             </div>
           </div>
+          <div className="mt-4 border-t border-gray-200 pt-4 flex space-x-3">
+            <button
+              onClick={() => setShowCrearSucursalModal(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Crear Sucursal
+            </button>
+            <button
+              onClick={() => setShowCrearAdminModal(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              Crear Administrador
+            </button>
+          </div>
         </div>
 
-        {/* Mensaje de error */}
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-6">
             <div className="flex">
@@ -475,7 +619,6 @@ export default function ConfigurarPermisosPage() {
           </div>
         )}
 
-        {/* Sección de Límite de Emisión */}
         <div className="bg-white shadow rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -487,6 +630,20 @@ export default function ConfigurarPermisosPage() {
               )}
             </h2>
             <div className="flex space-x-2">
+              {limiteUsuario && (
+                <button
+                  onClick={handleToggleLimiteActivo}
+                  title={limiteUsuario.activo ? "Impide que este usuario emita DTEs" : "Permite que este usuario emita DTEs"}
+                  disabled={guardando}
+                  className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                    limiteUsuario.activo
+                      ? 'text-red-700 bg-red-100 hover:bg-red-200 focus:ring-red-500'
+                      : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
+                  }`}
+                >
+                  {guardando ? '...' : (limiteUsuario.activo ? 'Deshabilitar Emisión' : 'Habilitar Emisión')}
+                </button>
+              )}
               {limiteUsuario && (
                 <button
                   onClick={handleEliminarLimite}
@@ -504,7 +661,6 @@ export default function ConfigurarPermisosPage() {
             </div>
           </div>
 
-          {/* Mostrar límite actual si existe */}
           {limiteUsuario && !mostrarFormularioLimite && (
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -521,7 +677,7 @@ export default function ConfigurarPermisosPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Estado</p>
+                  <p className="text-sm font-medium text-gray-700">Estado Emisión de DTE</p>
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     limiteUsuario.activo 
                       ? 'bg-green-100 text-green-800' 
@@ -554,7 +710,6 @@ export default function ConfigurarPermisosPage() {
             </div>
           )}
 
-          {/* Formulario para editar/crear límite */}
           {mostrarFormularioLimite && (
             <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
               <h3 className="text-md font-medium text-gray-900 mb-3">
@@ -630,7 +785,6 @@ export default function ConfigurarPermisosPage() {
             </div>
           )}
 
-          {/* Mensaje cuando no hay límite */}
           {!limiteUsuario && !mostrarFormularioLimite && (
             <div className="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -650,7 +804,6 @@ export default function ConfigurarPermisosPage() {
           )}
         </div>
 
-        {/* Contador de permisos */}
         <div className="bg-white shadow rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -671,7 +824,6 @@ export default function ConfigurarPermisosPage() {
           </div>
         </div>
 
-        {/* Lista de permisos */}
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -720,7 +872,6 @@ export default function ConfigurarPermisosPage() {
             )}
           </div>
 
-          {/* Botones de acción */}
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex justify-end space-x-3">
               <button
@@ -751,6 +902,128 @@ export default function ConfigurarPermisosPage() {
           </div>
         </div>
       </div>
+
+      {showCrearSucursalModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Crear Nueva Sucursal</h3>
+              <form onSubmit={handleCrearSucursal} className="mt-2 px-7 py-3 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" required value={nuevaSucursal.nombre} onChange={e => setNuevaSucursal({...nuevaSucursal, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <input type="text" value={nuevaSucursal.telefono} onChange={e => setNuevaSucursal({...nuevaSucursal, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Dirección / Complemento</label>
+                    <input type="text" value={nuevaSucursal.complemento} onChange={e => setNuevaSucursal({...nuevaSucursal, complemento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Cód. Establecimiento MH</label>
+                    <input type="text" value={nuevaSucursal.codestablemh} onChange={e => setNuevaSucursal({...nuevaSucursal, codestablemh: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Cód. Punto Venta MH</label>
+                    <input type="text" value={nuevaSucursal.codpuntoventamh} onChange={e => setNuevaSucursal({...nuevaSucursal, codpuntoventamh: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                </div>
+                <div className="items-center px-4 py-3 mt-4 -mx-7 -mb-5 bg-gray-50 text-right">
+                  <button type="button" onClick={() => setShowCrearSucursalModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2 hover:bg-gray-300">Cancelar</button>
+                  <button type="submit" disabled={guardando} className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50">
+                    {guardando ? 'Creando...' : 'Crear Sucursal'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCrearAdminModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Crear Nuevo Administrador</h3>
+              <form onSubmit={handleCrearAdmin} className="mt-2 px-7 py-3 text-left">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" required value={nuevoAdmin.nombre} onChange={e => setNuevoAdmin({...nuevoAdmin, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Apellido</label>
+                    <input type="text" required value={nuevoAdmin.apellido} onChange={e => setNuevoAdmin({...nuevoAdmin, apellido: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Tipo Documento</label>
+                    <select
+                      required
+                      value={nuevoAdmin.tipodocumento}
+                      onChange={e => setNuevoAdmin({ ...nuevoAdmin, tipodocumento: e.target.value })}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                    >
+                      {tiposDocumento.map((tipo) => (
+                        <option key={tipo.codigo} value={tipo.codigo}>
+                          {tipo.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Número Documento</label>
+                    <input type="text" required value={nuevoAdmin.numerodocumento} onChange={e => setNuevoAdmin({...nuevoAdmin, numerodocumento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <input type="email" required value={nuevoAdmin.correo} onChange={e => setNuevoAdmin({...nuevoAdmin, correo: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" required value={nuevoAdmin.contrasena} onChange={e => setNuevoAdmin({...nuevoAdmin, contrasena: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <input type="text" value={nuevoAdmin.telefono} onChange={e => setNuevoAdmin({...nuevoAdmin, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Rol</label>
+                    <input type="text" readOnly value={nuevoAdmin.rol} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"/>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Asignar a Sucursal</label>
+                    <select
+                      required
+                      value={nuevoAdmin.idsucursal}
+                      onChange={e => setNuevoAdmin({...nuevoAdmin, idsucursal: parseInt(e.target.value)})}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                    >
+                      <option value={0} disabled>Seleccione una sucursal</option>
+                      {sucursales.map(sucursal => (
+                        <option key={sucursal.idsucursal} value={sucursal.idsucursal}>
+                          {sucursal.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    {sucursales.length === 0 && (
+                      <p className="mt-2 text-sm text-yellow-600">No hay sucursales para este usuario. Por favor, cree una primero.</p>
+                    )}
+                  </div>
+                </div>
+                <div className="items-center px-4 py-3 mt-4 -mx-7 -mb-5 bg-gray-50 text-right">
+                  <button type="button" onClick={() => setShowCrearAdminModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2 hover:bg-gray-300">Cancelar</button>
+                  <button type="submit" disabled={guardando || sucursales.length === 0} className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50">
+                    {guardando ? 'Creando...' : 'Crear Administrador'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
