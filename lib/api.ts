@@ -8,7 +8,7 @@ export async function apiGet(path: string) {
     .map((c) => `${c.name}=${c.value}`)
     .join("; ");
 
-  const res = await fetch(`http://localhost:3000${path}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
     cache: "no-store",
     credentials: "include",
     headers: {
