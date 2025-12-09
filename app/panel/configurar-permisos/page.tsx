@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface PermisoCatalogo {
@@ -52,7 +52,7 @@ const initialSucursalState = {
 const initialAdminState = {
   nombre: "",
   apellido: "",
-  tipodocumento: "01", // Código para DUI por defecto
+  tipodocumento: "01",
   numerodocumento: "",
   correo: "",
   contrasena: "",
@@ -69,7 +69,23 @@ const tiposDocumento = [
   { codigo: "99", nombre: "Otro" },
 ];
 
-export default function ConfigurarPermisosPage() {
+// Componente de carga
+function Loading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <svg className="animate-spin h-8 w-8 text-gray-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p className="mt-2 text-gray-600">Cargando datos del usuario...</p>
+      </div>
+    </div>
+  );
+}
+
+// Componente principal que usa useSearchParams
+function ConfigurarPermisosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const usuarioId = searchParams.get('usuarioId');
@@ -194,7 +210,6 @@ export default function ConfigurarPermisosPage() {
           setSucursales(sucursalesData.data);
         }
       }
-
 
     } catch (err: unknown) {
       console.error("Error en cargarDatos:", err);
@@ -347,7 +362,6 @@ export default function ConfigurarPermisosPage() {
       }
 
       const result = await response.json();
-      await response.json();
       await cargarDatos();
       
       setMostrarFormularioLimite(false);
@@ -486,7 +500,6 @@ export default function ConfigurarPermisosPage() {
       }
 
       const result = await response.json();
-      await response.json();
       router.push('/panel');
       
     } catch (err: unknown) {
@@ -517,17 +530,7 @@ export default function ConfigurarPermisosPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <svg className="animate-spin h-8 w-8 text-gray-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p className="mt-2 text-gray-600">Cargando datos del usuario...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!usuarioId) {
@@ -1025,5 +1028,14 @@ export default function ConfigurarPermisosPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Componente principal exportado con Suspense
+export default function ConfigurarPermisosPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <ConfigurarPermisosContent />
+    </Suspense>
   );
 }
