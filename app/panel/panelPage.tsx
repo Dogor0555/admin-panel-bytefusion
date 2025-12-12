@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import RegistrarUsuarioModal from "./components/RegistrarUsuarioModal";
+import { apiDelete } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 
 interface DetalleUsuario {
@@ -46,6 +47,7 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
 
   const filteredUsuarios = useMemo(() => {
     if (!searchTerm.trim()) return usuarios;
@@ -72,6 +74,25 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
       else setError("Error al configurar el usuario");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUsuario = async (usuario: Usuario) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setDeletingUserId(usuario.id);
+    setError("");
+
+    try {
+      await apiDelete(`/usuarios/deleteUsu/${usuario.id}`);
+      router.refresh();
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Ocurrió un error inesperado al eliminar el usuario.");
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -206,11 +227,11 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
                       )}
                     </div>
 
-                    <div className="ml-6 shrink-0">
+                    <div className="ml-6 shrink-0 flex items-center gap-x-4">
                       <button
                         onClick={() => handleConfigurarUsuario(usuario)}
                         disabled={loading && selectedUsuario?.id === usuario.id}
-                        className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                        className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white transition-colors duration-150 ${
                           loading && selectedUsuario?.id === usuario.id
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'
@@ -218,14 +239,35 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
                       >
                         {loading && selectedUsuario?.id === usuario.id ? (
                           <>
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                             Configurando...
                           </>
                         ) : (
-                          'Configurar Permisos'
+                          'Configurar'
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUsuario(usuario)}
+                        disabled={deletingUserId === usuario.id}
+                        className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white transition-colors duration-150 ${
+                          deletingUserId === usuario.id
+                            ? 'bg-red-400 cursor-not-allowed'
+                            : 'bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+                        }`}
+                      >
+                        {deletingUserId === usuario.id ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Eliminando...
+                          </>
+                        ) : (
+                          'Eliminar'
                         )}
                       </button>
                     </div>
