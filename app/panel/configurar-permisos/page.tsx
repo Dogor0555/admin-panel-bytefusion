@@ -98,6 +98,7 @@ function ConfigurarPermisosContent() {
   const [showCrearAdminModal, setShowCrearAdminModal] = useState(false);
   const [nuevaSucursal, setNuevaSucursal] = useState(initialSucursalState);
   const [nuevoAdmin, setNuevoAdmin] = useState(initialAdminState);
+  const [ambiente, setAmbiente] = useState("00");
 
   const [limiteUsuario, setLimiteUsuario] = useState<LimiteEmision | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,6 +149,20 @@ function ConfigurarPermisosContent() {
 
       const permisosData = await permisosResponse.json();
       setPermisosCatalogo(permisosData);
+
+      // Cargar ambiente del usuario
+      const usuariosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/getAllUsu`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (usuariosResponse.ok) {
+        const usuariosData = await usuariosResponse.json();
+        if (usuariosData.data && Array.isArray(usuariosData.data)) {
+          const usuarioActual = usuariosData.data.find((u: any) => u.id === parseInt(usuarioId!));
+          if (usuarioActual) setAmbiente(usuarioActual.ambiente || "00");
+        }
+      }
 
       const detalleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/detalle-usuario/usuario/${usuarioId}`, {
         credentials: 'include',
@@ -288,6 +303,40 @@ function ConfigurarPermisosContent() {
       console.error("Error al crear administrador:", err);
       if (err instanceof Error) setError(err.message);
       else setError("Ocurrió un error desconocido al crear el administrador.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleToggleAmbiente = async () => {
+    if (!usuarioId) return;
+    const nuevoAmbiente = ambiente === "01" ? "00" : "01";
+    const textoAmbiente = nuevoAmbiente === "01" ? "PRODUCCIÓN" : "PRUEBAS";
+    
+    if (!confirm(`¿Estás seguro de cambiar el ambiente a ${textoAmbiente}?`)) {
+      return;
+    }
+
+    setGuardando(true);
+    setError("");
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/updateUsu/${usuarioId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ambiente: nuevoAmbiente }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al cambiar el ambiente');
+      }
+
+      setAmbiente(nuevoAmbiente);
+    } catch (err: unknown) {
+      console.error("Error al cambiar ambiente:", err);
+      if (err instanceof Error) setError(err.message);
+      else setError("Error desconocido al cambiar ambiente.");
     } finally {
       setGuardando(false);
     }
@@ -581,6 +630,17 @@ function ConfigurarPermisosContent() {
             </div>
           </div>
           <div className="mt-4 border-t border-gray-200 pt-4 flex space-x-3">
+            <button
+              onClick={handleToggleAmbiente}
+              disabled={guardando}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                ambiente === "01" 
+                  ? "bg-purple-600 hover:bg-purple-700 focus:ring-purple-500" 
+                  : "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500"
+              }`}
+            >
+              {ambiente === "01" ? "Ambiente: Producción" : "Ambiente: Pruebas"}
+            </button>
             <button
               onClick={() => setShowCrearSucursalModal(true)}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
