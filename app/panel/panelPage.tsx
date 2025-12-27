@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import RegistrarUsuarioModal from "./components/RegistrarUsuarioModal";
 import { apiDelete } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,20 @@ interface PanelPageProps {
 
 export default function PanelPage({ usuarios }: PanelPageProps) {
   const router = useRouter();
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("empleado");
+      if (!raw) return;
+      const empleado = JSON.parse(raw);
+      if (empleado?.correo !== "marcosteven0717@gmail.com") {
+        localStorage.removeItem("empleado");
+        window.location.href = "https://www.bytefusionsv.com";
+      }
+    } catch (e) {
+      localStorage.removeItem("empleado");
+      window.location.href = "https://www.bytefusionsv.com";
+    }
+  }, []);
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

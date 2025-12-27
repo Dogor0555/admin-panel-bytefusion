@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 export async function apiGet(path: string) {
-  const cookieStore = await cookies();   // ← AQUÍ va el await
+  const cookieStore = await cookies();   
 
   const cookieHeader = cookieStore
     .getAll()

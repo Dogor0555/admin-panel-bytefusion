@@ -2,7 +2,7 @@ export async function iniciarSesion(formData: FormData) {
   const correo = formData.get("correo");
   const contrasena = formData.get("contrasena");
 
-  if (correo !== "juan.perez@sucursal.com") {
+  if (correo !== "marcosteven0717@gmail.com") {
     throw new Error("Usuario no autorizado");
   }
 

@@ -39,6 +39,10 @@ interface LimiteEmision {
 interface Sucursal {
   idsucursal: number;
   nombre: string;
+  complemento?: string;
+  telefono?: string;
+  codestablemh?: string;
+  codpuntoventamh?: string;
 }
 
 const initialSucursalState = {
@@ -96,8 +100,13 @@ function ConfigurarPermisosContent() {
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [showCrearSucursalModal, setShowCrearSucursalModal] = useState(false);
   const [showCrearAdminModal, setShowCrearAdminModal] = useState(false);
+  const [showListSucursalesModal, setShowListSucursalesModal] = useState(false);
+  const [showListAdminsModal, setShowListAdminsModal] = useState(false);
   const [nuevaSucursal, setNuevaSucursal] = useState(initialSucursalState);
   const [nuevoAdmin, setNuevoAdmin] = useState(initialAdminState);
+  const [editingSucursalId, setEditingSucursalId] = useState<number | null>(null);
+  const [empleados, setEmpleados] = useState<any[]>([]);
+  const [editingEmpleadoId, setEditingEmpleadoId] = useState<number | null>(null);
   const [ambiente, setAmbiente] = useState("00");
 
   const [limiteUsuario, setLimiteUsuario] = useState<LimiteEmision | null>(null);
@@ -117,6 +126,12 @@ function ConfigurarPermisosContent() {
       cargarDatos();
     }
   }, [usuarioId]);
+
+  useEffect(() => {
+    if (showCrearAdminModal || showListAdminsModal) {
+      fetchEmpleados();
+    }
+  }, [showCrearAdminModal, showListAdminsModal]);
 
   useEffect(() => {
     const hoy = new Date();
@@ -241,26 +256,38 @@ function ConfigurarPermisosContent() {
     setGuardando(true);
     setError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/create`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...nuevaSucursal, usuarioid: parseInt(usuarioId) }),
-      });
+      let response;
+      if (editingSucursalId) {
+        // Actualizar sucursal
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/update/${editingSucursalId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nuevaSucursal),
+        });
+      } else {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/create`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...nuevaSucursal, usuarioid: parseInt(usuarioId) }),
+        });
+      }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear la sucursal');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al guardar la sucursal');
       }
 
       await cargarDatos();
       setShowCrearSucursalModal(false);
       setNuevaSucursal(initialSucursalState);
+      setEditingSucursalId(null);
 
     } catch (err: unknown) {
-      console.error("Error al crear sucursal:", err);
+      console.error("Error al crear/actualizar sucursal:", err);
       if (err instanceof Error) setError(err.message);
-      else setError("Ocurrió un error desconocido al crear la sucursal.");
+      else setError("Ocurrió un error desconocido al crear/actualizar la sucursal.");
     } finally {
       setGuardando(false);
     }
@@ -275,37 +302,138 @@ function ConfigurarPermisosContent() {
     setGuardando(true);
     setError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/add`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: `${nuevoAdmin.nombre} ${nuevoAdmin.apellido}`.trim(),
-          tipodocumento: nuevoAdmin.tipodocumento,
-          numerodocumento: nuevoAdmin.numerodocumento,
-          correo: nuevoAdmin.correo,
-          contrasena: nuevoAdmin.contrasena,
-          idsucursal: nuevoAdmin.idsucursal,
-          rol: nuevoAdmin.rol,
-          estado: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear el administrador');
+      let response;
+      if (editingEmpleadoId) {
+        // Actualizar empleado
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/update/${editingEmpleadoId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: `${nuevoAdmin.nombre} ${nuevoAdmin.apellido}`.trim(),
+            tipodocumento: nuevoAdmin.tipodocumento,
+            numerodocumento: nuevoAdmin.numerodocumento,
+            correo: nuevoAdmin.correo,
+            contrasena: nuevoAdmin.contrasena,
+            idsucursal: nuevoAdmin.idsucursal,
+            rol: nuevoAdmin.rol,
+            estado: true,
+          }),
+        });
+      } else {
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/add`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: `${nuevoAdmin.nombre} ${nuevoAdmin.apellido}`.trim(),
+            tipodocumento: nuevoAdmin.tipodocumento,
+            numerodocumento: nuevoAdmin.numerodocumento,
+            correo: nuevoAdmin.correo,
+            contrasena: nuevoAdmin.contrasena,
+            idsucursal: nuevoAdmin.idsucursal,
+            rol: nuevoAdmin.rol,
+            estado: true,
+          }),
+        });
       }
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al crear/actualizar el administrador');
+      }
+
+      // Refrescar empleados y cerrar modal
+      await fetchEmpleados();
       setShowCrearAdminModal(false);
       setNuevoAdmin(initialAdminState);
+      setEditingEmpleadoId(null);
 
     } catch (err: unknown) {
-      console.error("Error al crear administrador:", err);
+      console.error("Error al crear/actualizar administrador:", err);
       if (err instanceof Error) setError(err.message);
-      else setError("Ocurrió un error desconocido al crear el administrador.");
+      else setError("Ocurrió un error desconocido al crear/actualizar el administrador.");
     } finally {
       setGuardando(false);
     }
+  };
+
+  const fetchEmpleados = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/admins`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const items = Array.isArray(data)
+          ? data
+          : (Array.isArray(data.empleados) ? data.empleados : (data.data || []));
+        setEmpleados(items);
+      }
+    } catch (err) {
+      console.error('Error cargando empleados:', err);
+    }
+  };
+
+  const handleEliminarSucursal = async (idsucursal:number) => {
+    if (!confirm('¿Eliminar sucursal? Esta acción es irreversible.')) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sucursal/delete/${idsucursal}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Error al eliminar sucursal');
+      await cargarDatos();
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message || 'Error al eliminar sucursal');
+    }
+  };
+
+  const handleEditarSucursal = (sucursal: any) => {
+    setNuevaSucursal({
+      nombre: sucursal.nombre || '',
+      telefono: sucursal.telefono || '',
+      complemento: sucursal.complemento || '',
+      codestablemh: sucursal.codestablemh || '',
+      codpuntoventamh: sucursal.codpuntoventamh || ''
+    });
+    setEditingSucursalId(sucursal.idsucursal || null);
+  };
+
+  const handleEliminarAdmin = async (idempleado:number) => {
+    if (!confirm('¿Eliminar administrador?')) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados/delete/${idempleado}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Error al eliminar administrador');
+      await fetchEmpleados();
+    } catch (err) {
+      console.error(err);
+      setError((err as Error).message || 'Error al eliminar administrador');
+    }
+  };
+
+  const handleEditarAdmin = (empleado:any) => {
+    // separar nombre en nombre/apellido simple
+    const parts = (empleado.nombre || '').split(' ');
+    setNuevoAdmin({
+      ...nuevoAdmin,
+      nombre: parts.shift() || '',
+      apellido: parts.join(' ') || '',
+      tipodocumento: empleado.tipodocumento || '01',
+      numerodocumento: empleado.numerodocumento || '',
+      correo: empleado.correo || '',
+      telefono: empleado.telefono || '',
+      idsucursal: empleado.idsucursal || 0,
+      rol: empleado.rol || 'Admin'
+    });
+    setEditingEmpleadoId(empleado.idempleado || null);
   };
 
   const handleToggleAmbiente = async () => {
@@ -549,7 +677,7 @@ function ConfigurarPermisosContent() {
       }
 
       const result = await response.json();
-      router.push('/panel');
+      setError("");
       
     } catch (err: unknown) {
       console.error("Error al guardar:", err);
@@ -642,16 +770,16 @@ function ConfigurarPermisosContent() {
               {ambiente === "01" ? "Ambiente: Producción" : "Ambiente: Pruebas"}
             </button>
             <button
-              onClick={() => setShowCrearSucursalModal(true)}
+              onClick={() => setShowListSucursalesModal(true)}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Crear Sucursal
+              Sucursales
             </button>
             <button
-              onClick={() => setShowCrearAdminModal(true)}
+              onClick={() => setShowListAdminsModal(true)}
               className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
-              Crear Administrador
+              Administradores
             </button>
           </div>
         </div>
@@ -966,41 +1094,104 @@ function ConfigurarPermisosContent() {
         </div>
       </div>
 
+      {showListSucursalesModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+              <div className="relative top-20 mx-auto w-full max-w-3xl bg-white shadow rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Sucursales</h3>
+                    <p className="text-sm text-gray-500">Lista de sucursales asociadas al usuario</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { setShowListSucursalesModal(false); }} className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cerrar</button>
+                    <button onClick={() => { setNuevaSucursal(initialSucursalState); setEditingSucursalId(null); setShowCrearSucursalModal(true); }} className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Crear</button>
+                  </div>
+                </div>
+                <div className="mt-5">
+                  <div className="space-y-3 max-h-72 overflow-auto">
+                    {sucursales.length === 0 ? (
+                      <p className="text-sm text-gray-500">No hay sucursales.</p>
+                    ) : (
+                      sucursales.map(s => (
+                        <div key={s.idsucursal} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg bg-gray-50">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{s.nombre}</p>
+                            <p className="text-xs text-gray-500">{s.complemento}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => { handleEditarSucursal(s); setShowCrearSucursalModal(true); }} className="px-3 py-1 text-sm font-medium text-gray-800 bg-yellow-100 rounded-md hover:bg-yellow-200">Editar</button>
+                            <button onClick={() => handleEliminarSucursal(s.idsucursal)} className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Borrar</button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+        </div>
+      )}
+
       {showCrearSucursalModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Crear Nueva Sucursal</h3>
-              <form onSubmit={handleCrearSucursal} className="mt-2 px-7 py-3 text-left">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                    <input type="text" required value={nuevaSucursal.nombre} onChange={e => setNuevaSucursal({...nuevaSucursal, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
-                    <input type="text" value={nuevaSucursal.telefono} onChange={e => setNuevaSucursal({...nuevaSucursal, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Dirección / Complemento</label>
-                    <input type="text" value={nuevaSucursal.complemento} onChange={e => setNuevaSucursal({...nuevaSucursal, complemento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Cód. Establecimiento MH</label>
-                    <input type="text" value={nuevaSucursal.codestablemh} onChange={e => setNuevaSucursal({...nuevaSucursal, codestablemh: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Cód. Punto Venta MH</label>
-                    <input type="text" value={nuevaSucursal.codpuntoventamh} onChange={e => setNuevaSucursal({...nuevaSucursal, codpuntoventamh: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                </div>
-                <div className="items-center px-4 py-3 mt-4 -mx-7 -mb-5 bg-gray-50 text-right">
-                  <button type="button" onClick={() => setShowCrearSucursalModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2 hover:bg-gray-300">Cancelar</button>
-                  <button type="submit" disabled={guardando} className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50">
-                    {guardando ? 'Creando...' : 'Crear Sucursal'}
-                  </button>
-                </div>
-              </form>
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">{editingSucursalId ? 'Editar Sucursal' : 'Crear Sucursal'}</h3>
+              <button onClick={() => { setShowCrearSucursalModal(false); setEditingSucursalId(null); setNuevaSucursal(initialSucursalState); }} className="px-3 py-1 text-sm bg-gray-200 rounded">Cerrar</button>
+            </div>
+            <form onSubmit={handleCrearSucursal} className="mt-4 grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <input type="text" required value={nuevaSucursal.nombre} onChange={e => setNuevaSucursal({...nuevaSucursal, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                <input type="text" value={nuevaSucursal.telefono} onChange={e => setNuevaSucursal({...nuevaSucursal, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Dirección / Complemento</label>
+                <input type="text" value={nuevaSucursal.complemento} onChange={e => setNuevaSucursal({...nuevaSucursal, complemento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div className="flex justify-end space-x-2 mt-3">
+                <button type="button" onClick={() => { setShowCrearSucursalModal(false); setNuevaSucursal(initialSucursalState); setEditingSucursalId(null); }} className="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
+                <button type="submit" disabled={guardando} className="px-4 py-2 bg-gray-800 text-white rounded">{guardando ? 'Guardando...' : (editingSucursalId ? 'Actualizar' : 'Crear')}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showListAdminsModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto w-full max-w-3xl bg-white shadow rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Administradores</h3>
+                <p className="text-sm text-gray-500">Lista de administradores del sistema</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setShowListAdminsModal(false); }} className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cerrar</button>
+                <button onClick={() => { setNuevoAdmin(initialAdminState); setEditingEmpleadoId(null); setShowCrearAdminModal(true); }} className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Crear</button>
+              </div>
+            </div>
+            <div className="mt-5">
+              <div className="space-y-3 max-h-72 overflow-auto">
+                {empleados.length === 0 ? (
+                  <p className="text-sm text-gray-500">No hay administradores.</p>
+                ) : (
+                  empleados.map(emp => (
+                    <div key={emp.idempleado || emp.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg bg-gray-50">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{emp.nombre}</p>
+                        <p className="text-xs text-gray-500">{emp.correo}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => { handleEditarAdmin(emp); setShowCrearAdminModal(true); }} className="px-3 py-1 text-sm font-medium text-gray-800 bg-yellow-100 rounded-md hover:bg-yellow-200">Editar</button>
+                        <button onClick={() => handleEliminarAdmin(emp.idempleado || emp.id)} className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Borrar</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1008,82 +1199,66 @@ function ConfigurarPermisosContent() {
 
       {showCrearAdminModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Crear Nuevo Administrador</h3>
-              <form onSubmit={handleCrearAdmin} className="mt-2 px-7 py-3 text-left">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                    <input type="text" required value={nuevoAdmin.nombre} onChange={e => setNuevoAdmin({...nuevoAdmin, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Apellido</label>
-                    <input type="text" required value={nuevoAdmin.apellido} onChange={e => setNuevoAdmin({...nuevoAdmin, apellido: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Tipo Documento</label>
-                    <select
-                      required
-                      value={nuevoAdmin.tipodocumento}
-                      onChange={e => setNuevoAdmin({ ...nuevoAdmin, tipodocumento: e.target.value })}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                    >
-                      {tiposDocumento.map((tipo) => (
-                        <option key={tipo.codigo} value={tipo.codigo}>
-                          {tipo.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Número Documento</label>
-                    <input type="text" required value={nuevoAdmin.numerodocumento} onChange={e => setNuevoAdmin({...nuevoAdmin, numerodocumento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                    <input type="email" required value={nuevoAdmin.correo} onChange={e => setNuevoAdmin({...nuevoAdmin, correo: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input type="password" required value={nuevoAdmin.contrasena} onChange={e => setNuevoAdmin({...nuevoAdmin, contrasena: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Teléfono</label>
-                    <input type="text" value={nuevoAdmin.telefono} onChange={e => setNuevoAdmin({...nuevoAdmin, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"/>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Rol</label>
-                    <input type="text" readOnly value={nuevoAdmin.rol} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100"/>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Asignar a Sucursal</label>
-                    <select
-                      required
-                      value={nuevoAdmin.idsucursal}
-                      onChange={e => setNuevoAdmin({...nuevoAdmin, idsucursal: parseInt(e.target.value)})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                    >
-                      <option value={0} disabled>Seleccione una sucursal</option>
-                      {sucursales.map(sucursal => (
-                        <option key={sucursal.idsucursal} value={sucursal.idsucursal}>
-                          {sucursal.nombre}
-                        </option>
-                      ))}
-                    </select>
-                    {sucursales.length === 0 && (
-                      <p className="mt-2 text-sm text-yellow-600">No hay sucursales para este usuario. Por favor, cree una primero.</p>
-                    )}
-                  </div>
-                </div>
-                <div className="items-center px-4 py-3 mt-4 -mx-7 -mb-5 bg-gray-50 text-right">
-                  <button type="button" onClick={() => setShowCrearAdminModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2 hover:bg-gray-300">Cancelar</button>
-                  <button type="submit" disabled={guardando || sucursales.length === 0} className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50">
-                    {guardando ? 'Creando...' : 'Crear Administrador'}
-                  </button>
-                </div>
-              </form>
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">{editingEmpleadoId ? 'Editar Administrador' : 'Crear Administrador'}</h3>
+              <button onClick={() => { setShowCrearAdminModal(false); setEditingEmpleadoId(null); setNuevoAdmin(initialAdminState); }} className="px-3 py-1 text-sm bg-gray-200 rounded">Cerrar</button>
             </div>
+            <form onSubmit={handleCrearAdmin} className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <input type="text" required value={nuevoAdmin.nombre} onChange={e => setNuevoAdmin({...nuevoAdmin, nombre: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Apellido</label>
+                <input type="text" required value={nuevoAdmin.apellido} onChange={e => setNuevoAdmin({...nuevoAdmin, apellido: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tipo Documento</label>
+                <select required value={nuevoAdmin.tipodocumento} onChange={e => setNuevoAdmin({ ...nuevoAdmin, tipodocumento: e.target.value })} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                  {tiposDocumento.map((tipo) => (
+                    <option key={tipo.codigo} value={tipo.codigo}>{tipo.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Número Documento</label>
+                <input type="text" required value={nuevoAdmin.numerodocumento} onChange={e => setNuevoAdmin({...nuevoAdmin, numerodocumento: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" required value={nuevoAdmin.correo} onChange={e => setNuevoAdmin({...nuevoAdmin, correo: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input type="password" value={nuevoAdmin.contrasena} onChange={e => setNuevoAdmin({...nuevoAdmin, contrasena: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                <input type="text" value={nuevoAdmin.telefono} onChange={e => setNuevoAdmin({...nuevoAdmin, telefono: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Rol</label>
+                <input type="text" readOnly value={nuevoAdmin.rol} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"/>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Asignar a Sucursal</label>
+                <select required value={nuevoAdmin.idsucursal} onChange={e => setNuevoAdmin({...nuevoAdmin, idsucursal: parseInt(e.target.value)})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                  <option value={0} disabled>Seleccione una sucursal</option>
+                  {sucursales.map(sucursal => (
+                    <option key={sucursal.idsucursal} value={sucursal.idsucursal}>{sucursal.nombre}</option>
+                  ))}
+                </select>
+                {sucursales.length === 0 && (
+                  <p className="mt-2 text-sm text-yellow-600">No hay sucursales para este usuario. Por favor, cree una primero.</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2 flex justify-end space-x-2 mt-3">
+                <button type="button" onClick={() => { setShowCrearAdminModal(false); setNuevoAdmin(initialAdminState); setEditingEmpleadoId(null); }} className="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
+                <button type="submit" disabled={guardando || sucursales.length === 0} className="px-4 py-2 bg-gray-800 text-white rounded">{guardando ? 'Guardando...' : (editingEmpleadoId ? 'Actualizar' : 'Crear')}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
