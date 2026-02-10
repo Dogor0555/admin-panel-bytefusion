@@ -47,7 +47,7 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
       const raw = localStorage.getItem("empleado");
       if (!raw) return;
       const empleado = JSON.parse(raw);
-      if (empleado?.correo !== "marcosteven0717@gmail.com") {
+      if (empleado?.correo !== "juan.perez@sucursal.com") {
         localStorage.removeItem("empleado");
         window.location.href = "https://www.bytefusionsv.com";
       }

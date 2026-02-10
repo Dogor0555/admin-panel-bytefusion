@@ -2,7 +2,7 @@ export async function iniciarSesion(formData: FormData) {
   const correo = formData.get("correo");
   const contrasena = formData.get("contrasena");
 
-  if (correo !== "marcosteven0717@gmail.com") {
+  if (correo !== "juan.perez@sucursal.com") {
     throw new Error("Usuario no autorizado");
   }
 
@@ -13,10 +13,20 @@ export async function iniciarSesion(formData: FormData) {
     credentials: "include"
   });
 
+  const text = await res.text();
+  console.log("Respuesta del servidor:", text); // Mira la consola (F12) para ver el contenido real
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.mensaje || "Error al iniciar sesión");
+    let mensaje;
+    try {
+      mensaje = JSON.parse(text)?.mensaje;
+    } catch {}
+    throw new Error(mensaje || `Error ${res.status}: ${text.slice(0, 150)}...`);
   }
 
-  return res.json();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Respuesta no válida: ${text}...`);
+  }
 }

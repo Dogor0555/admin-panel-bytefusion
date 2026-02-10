@@ -17,7 +17,10 @@ export default function LoginPage() {
       await iniciarSesion(formData);
       window.location.href = "/panel";
     } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      }
       else setError("Error desconocido");
     } finally {
       setLoading(false);
