@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
     // Response shape: { ok: true, user: { emailemp: 'juan.perez@sucursal.com', ... } }
     const emailemp = body?.user?.emailemp ?? body?.emailemp;
 
-    const allowedEmail = process.env.ALLOWED_EMP_EMAIL || "marcosteven0717@gmail.com";
+    const allowedEmail = process.env.ALLOWED_EMP_EMAIL || "juan.perez@sucursal.com";
     if (!body || !emailemp || emailemp !== allowedEmail) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
