@@ -1,3 +1,5 @@
+//app/panel/panelPage.tsx
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";

@@ -1,3 +1,4 @@
+//lib/api.ts
 import { cookies } from "next/headers";
 
 export async function apiGet(path: string) {

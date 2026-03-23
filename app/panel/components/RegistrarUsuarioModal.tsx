@@ -1,3 +1,5 @@
+
+//app/panel/components/RegistrarUsuarioModal.tsx
 "use client";
 
 import { useState, FormEvent, useEffect } from 'react';

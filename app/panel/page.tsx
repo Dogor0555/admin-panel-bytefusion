@@ -1,3 +1,4 @@
+//app/panel/page.tsx
 import { apiGet } from "@/lib/api";
 import PanelPage from "./panelPage";
 

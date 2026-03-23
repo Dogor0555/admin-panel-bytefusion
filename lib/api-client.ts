@@ -1,3 +1,4 @@
+//lib/api-client.ts
 /**
  * Este archivo es para llamadas a la API del lado del cliente.
  * Incluye automáticamente las credenciales para las solicitudes autenticadas.
