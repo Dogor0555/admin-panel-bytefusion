@@ -20,5 +20,5 @@ jobs:
 
       - name: Build & Push Admin Panel Image
         run: |
-          docker build -t christophermoz/admin-panel:latest .
-          docker push christophermoz/admin-panel:latest
+          docker build -t dogor0555/admin-panel:latest .
+          docker push dogor0555/admin-panel:latest
