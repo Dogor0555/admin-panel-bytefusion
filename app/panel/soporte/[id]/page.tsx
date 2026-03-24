@@ -40,8 +40,10 @@ import {
   FaTicketAlt,
   FaBell,
   FaVolumeUp,
-  FaVolumeMute
+  FaVolumeMute,
+  FaVideo
 } from "react-icons/fa";
+import VideoCall from "../components/VideoCall";
 
 interface Ticket {
   id: number;
@@ -133,6 +135,8 @@ export default function TicketDetallePanelPage() {
   const [mostrarInfoCliente, setMostrarInfoCliente] = useState(true);
   const [notificacionPermiso, setNotificacionPermiso] = useState<NotificationPermission | null>(null);
   const [sonidoActivo, setSonidoActivo] = useState(true);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
+  const [roomId, setRoomId] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mensajesCountRef = useRef<number>(0);
   
@@ -177,6 +181,27 @@ export default function TicketDetallePanelPage() {
         window.focus();
         notification.close();
       };
+    }
+  };
+
+  const iniciarVideoLlamada = async () => {
+    const newRoomId = `ticket-${id}-${Date.now()}`;
+    setRoomId(newRoomId);
+    
+    const formData = new FormData();
+    formData.append("mensaje", `🔴 El agente ha iniciado una videollamada. Haz clic en "Unirse" para aceptar: ${newRoomId}`);
+    
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/tickets/${id}/mensajes`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      setVideoCallOpen(true);
+      await fetchTicket();
+    } catch (error) {
+      console.error("Error al iniciar videollamada:", error);
+      setError("No se pudo iniciar la videollamada");
     }
   };
 
@@ -233,7 +258,6 @@ export default function TicketDetallePanelPage() {
       }
       const data = await response.json();
       
-      // Verificar nuevos mensajes para notificación
       if (data.mensajes && data.mensajes.length > mensajes.length) {
         const nuevos = data.mensajes.slice(mensajes.length);
         nuevos.forEach((msg: { remitente_tipo: string; mensaje: string; }) => {
@@ -581,6 +605,12 @@ export default function TicketDetallePanelPage() {
                 Tiempo real
               </span>
             )}
+            <button
+              onClick={iniciarVideoLlamada}
+              className="flex items-center gap-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm"
+            >
+              <FaVideo /> Llamada
+            </button>
           </div>
         </div>
 
@@ -1079,6 +1109,22 @@ export default function TicketDetallePanelPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de videollamada */}
+      <VideoCall
+  isOpen={videoCallOpen}
+  onClose={() => {
+    setVideoCallOpen(false);
+    setRoomId("");
+  }}
+  roomId={roomId}
+  isInitiator={true}
+  onCallEnded={() => {
+    console.log("Llamada terminada, limpiando estado...");
+    setVideoCallOpen(false);
+    setRoomId("");
+  }}
+/>
 
       <style jsx>{`
         @keyframes fadeIn {
