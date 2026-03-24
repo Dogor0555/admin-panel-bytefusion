@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, JSX } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Reload from "../components/ui/icons/Reload";
 import {
   FaTicketAlt,
   FaClock,
@@ -207,19 +208,15 @@ export default function SoportePanelPage() {
   const tieneFiltrosActivos = filtroEstado !== "todos" || filtroPrioridad !== "todos" || searchTerm !== "";
 
   return (
-    <div className="text-black min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="text-black min-screen bg-transparent py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <FaTicketAlt className="text-blue-600" />
-                Tickets de Soporte
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                Gestiona y responde a las solicitudes de los clientes
               </h1>
-              <p className="mt-1 text-gray-500">
-                Gestiona y responde a las solicitudes de soporte de los clientes
-              </p>
             </div>
             <div className="flex gap-2">
               <button
@@ -227,7 +224,7 @@ export default function SoportePanelPage() {
                 disabled={refreshing}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
               >
-                <FaSync className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                <Reload className="w-5 h-5"/>
                 Actualizar
               </button>
             </div>

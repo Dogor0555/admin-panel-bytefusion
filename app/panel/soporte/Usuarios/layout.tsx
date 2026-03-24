@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import Sidebar from "./components/sidebar";
-import Header from "./components/Header";
+import Sidebar from "../../components/sidebar";
+import Header from "../../components/Header";
 
 export default function PanelLayout({ children }: { children: ReactNode }) {
   return (
