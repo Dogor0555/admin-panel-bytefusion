@@ -101,20 +101,20 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
   if (!isOpen) return null;
 
   return (
-    <div className="text-black fixed inset-0 bg-gray-400 bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="text-black fixed inset-0 bg-transparent bg-opacity-50 z-50 flex justify-center items-center p-4">
+      <div className="bg-gray-800 rounded-2xl shadow-md w-full max-w-4xl max-h-[90vh] overflow-hidden p-6">
         {/* Header del Modal */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-b border-gray-200 bg-greenS-50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Registrar Nuevo Usuario</h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <h2 className="text-2xl font-bold text-white">Registrar Nuevo Usuario</h2>
+              <p className="mt-1 text-sm text-white 100">
                 Complete la información de la empresa para el registro.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 transition-colors duration-150"
+              className="text-red-400 hover:text-red-500 transition-colors duration-150 cursor-pointer"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -131,7 +131,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
               {/* Sección de Información Principal */}
               <div className="space-y-6">
                 <div className="border-b border-gray-200 pb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-white">
                     Información Principal
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
@@ -141,7 +141,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Nombre / Razón Social *
                     </label>
                     <input
@@ -150,13 +150,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       value={formData.nombre}
                       onChange={handleChange}
                       required
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese la razón social"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       NIT *
                     </label>
                     <input
@@ -165,13 +165,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       value={formData.nit}
                       onChange={handleChange}
                       required
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese el NIT"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Correo Electrónico *
                     </label>
                     <input
@@ -180,13 +180,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       value={formData.correo}
                       onChange={handleChange}
                       required
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="correo@empresa.com"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Teléfono
                     </label>
                     <input
@@ -194,13 +194,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="telefono"
                       value={formData.telefono}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese el teléfono"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Contraseña *
                     </label>
                     <input
@@ -209,7 +209,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       value={formData.contrasena}
                       onChange={handleChange}
                       required
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese una contraseña segura"
                     />
                   </div>
@@ -219,17 +219,17 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
               {/* Sección de Información Fiscal */}
               <div className="space-y-6">
                 <div className="border-b border-gray-200 pb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-white">
                     Información Fiscal y de DTE
                   </h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-white 100">
                     Información adicional para facturación electrónica
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       NRC
                     </label>
                     <input
@@ -237,13 +237,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="nrc"
                       value={formData.nrc}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese el NRC"
                     />
                   </div>
                   
                   <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Giro
                     </label>
                     <input
@@ -251,13 +251,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="giro"
                       value={formData.giro}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese el giro comercial"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Código de Actividad
                     </label>
                     <input
@@ -265,13 +265,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="codactividad"
                       value={formData.codactividad}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Código actividad"
                     />
                   </div>
                   
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Descripción de Actividad
                     </label>
                     <input
@@ -279,13 +279,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="desactividad"
                       value={formData.desactividad}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Descripción de la actividad comercial"
                     />
                   </div>
                   
                   <div className="md:col-span-2 lg:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Nombre Comercial
                     </label>
                     <input
@@ -293,13 +293,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="nombrecomercial"
                       value={formData.nombrecomercial}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ingrese el nombre comercial"
                     />
                   </div>
                   
                   <div className="md:col-span-2 lg:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Complemento de Dirección
                     </label>
                     <input
@@ -307,20 +307,20 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="complemento"
                       value={formData.complemento}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Detalles adicionales de la dirección"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Tipo de Establecimiento
                     </label>
                     <select
                       name="tipoestablecimiento"
                       value={formData.tipoestablecimiento}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                     >
                       <option value="01">Casa Matriz</option>
                       <option value="02">Sucursal</option>
@@ -328,7 +328,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Departamento
                     </label>
                     <input
@@ -336,13 +336,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="departamento"
                       value={formData.departamento}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ej: 06"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Municipio
                     </label>
                     <input
@@ -350,13 +350,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="municipio"
                       value={formData.municipio}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Ej: 14"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Contraseña Firma Electrónica
                     </label>
                     <input
@@ -364,13 +364,13 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="passwordfirma"
                       value={formData.passwordfirma}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Password para firma"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-white mb-1">
                       Password API Hacienda
                     </label>
                     <input
@@ -378,25 +378,50 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
                       name="passwordtoken"
                       value={formData.passwordtoken}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-2xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                       placeholder="Token de Hacienda"
                     />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ambiente Hacienda
-                    </label>
-                    <select
-                      name="ambiente"
-                      value={formData.ambiente}
-                      onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
-                    >
-                      <option value="00">Pruebas</option>
-                      <option value="01">Producción</option>
-                    </select>
-                  </div>
+<div className="space-y-1">
+  <label className="block text-sm font-medium text-gray-300">
+    Ambiente Hacienda
+  </label>
+
+  <div className="relative group">
+    
+    {/* Select */}
+    <select
+      name="ambiente"
+      value={formData.ambiente}
+      onChange={handleChange}
+      className="
+        w-full pl-4 pr-10 py-2.5
+        bg-gray-800/70
+        border border-gray-700
+        rounded-xl
+        text-sm text-white
+        appearance-none
+        backdrop-blur
+        focus:outline-none
+        focus:ring-2 focus:ring-white/20
+        focus:border-white/30
+        transition-all duration-200
+      "
+    >
+      <option value="00" className="bg-gray-900">Pruebas</option>
+      <option value="01" className="bg-gray-900">Producción</option>
+    </select>
+
+    {/* Icono flecha */}
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-white transition">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </span>
+
+  </div>
+</div>
                 </div>
             </div>
 
@@ -445,7 +470,7 @@ export default function RegistrarUsuarioModal({ isOpen, onClose, onUserAdded }: 
             </div>
           </form>
         </div>
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-200 bg-transparent">
           <div className="flex justify-end space-x-3">
             <button
               type="button"

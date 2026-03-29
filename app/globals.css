@@ -13,9 +13,9 @@
 
 /* 🌙 MODO OSCURO */
 .dark {
-  --bg: #020617;        /* fondo oscuro tipo SaaS */
-  --card: #0f172a;      /* cards oscuras */
-  --text: #f1f5f9;
+  --bg: #020617;
+  --card: #0f172a;
+  --text: #ffffff;        /* ⚡ texto principal en blanco */
   --text-soft: #94a3b8;
   --border: #1e293b;
   --input: #020617;
@@ -69,4 +69,12 @@ body {
 
 .btn-danger:hover {
   background: #b91c1c;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

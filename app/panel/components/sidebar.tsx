@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowsRound } from "../components/ui/icons/ArrowsRound";
 import { Usuario } from "../components/ui/icons/Usuario";
 import { TicketSoporte } from "../components/ui/icons/TicketSoporte";
-import { FaBars, FaMoon, FaSun, FaSignOutAlt } from "react-icons/fa";
+import {Moon} from "../components/ui/icons/moon"
+import {Sun} from "../components/ui/icons/sun"
+import{ Logout } from "../components/ui/icons/Logout";
 import { useState, useEffect } from "react";
 
 export default function Sidebar() {
@@ -108,13 +110,22 @@ export default function Sidebar() {
       {/* FOOTER */}
       <div className="p-3 border-t dark:border-gray-800 space-y-3">
         {/* THEME */}
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-        >
-          {dark ? <FaSun /> : <FaMoon />}
-          {open && <span>{dark ? "Modo claro" : "Modo oscuro"}</span>}
-        </button>
+<button
+  onClick={toggleTheme}
+  className="flex items-center gap-3 w-full p-2 rounded-lg 
+             hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+>
+  {dark ? (
+    <Sun className="w-5 h-5 text-gray-800 dark:text-white" />
+  ) : (
+    <Moon className="w-5 h-5 text-gray-800 dark:text-white" />
+  )}
+  {open && (
+    <span className="text-gray-800 dark:text-white">
+      {dark ? "Modo claro" : "Modo oscuro"}
+    </span>
+  )}
+</button>
 
         {/* USER */}
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
@@ -134,7 +145,7 @@ export default function Sidebar() {
           onClick={handleLogout}
           className="flex items-center gap-3 w-full p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
         >
-          <FaSignOutAlt />
+          <Logout className="w-5 h-5" />
           {open && <span>Cerrar sesión</span>}
         </button>
       </div>
