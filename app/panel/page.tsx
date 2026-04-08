@@ -1,3 +1,5 @@
+// app/panel/page.tsx
+
 import { apiGet } from "@/lib/api";
 import PanelPage from "./panelPage";
 
@@ -9,8 +11,6 @@ export default async function Panel() {
     usuarios = response.data;
   } catch (error) {
     console.log("🔥 Backend caído, usando datos mock");
-
-    // 👇 DATOS FAKE PARA QUE NO ROMPA
     usuarios = [
       {
         id: 1,

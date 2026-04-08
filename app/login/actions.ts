@@ -1,5 +1,7 @@
 // app/login/actions.ts
 
+"use server";
+
 export async function iniciarSesion(formData: FormData) {
   const correo = formData.get("correo");
   const contrasena = formData.get("contrasena");
@@ -14,8 +16,6 @@ export async function iniciarSesion(formData: FormData) {
   }
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
-  
-  console.log("API_URL usada:", API_URL);
 
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -28,7 +28,6 @@ export async function iniciarSesion(formData: FormData) {
   });
 
   const text = await res.text();
-  console.log("Respuesta:", text);
 
   if (!res.ok) {
     let mensaje;
@@ -41,6 +40,7 @@ export async function iniciarSesion(formData: FormData) {
   try {
     const data = JSON.parse(text);
     
+    // Guardar en localStorage
     if (typeof window !== 'undefined') {
       if (data.empresa) localStorage.setItem("empresa", JSON.stringify(data.empresa));
       if (data.empleado) localStorage.setItem("empleado", JSON.stringify(data.empleado));
@@ -50,7 +50,6 @@ export async function iniciarSesion(formData: FormData) {
     
     return { success: true, data };
   } catch (error) {
-    console.error("Error parseando JSON:", error);
-    throw new Error(`Respuesta no válida`);
+    throw new Error("Respuesta no válida del servidor");
   }
 }

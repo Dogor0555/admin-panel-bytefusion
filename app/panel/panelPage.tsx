@@ -61,7 +61,7 @@ export default function PanelPage({ usuarios }: PanelPageProps) {
       usuario.nombre.toLowerCase().includes(term) ||
       usuario.nit.toLowerCase().includes(term) ||
       usuario.correo.toLowerCase().includes(term) ||
-      usuario.nombrecomercial?.toLowerCase().includes(term) ||
+      (usuario.nombrecomercial?.toLowerCase().includes(term) ?? false) ||
       usuario.giro.toLowerCase().includes(term)
     );
   }, [usuarios, searchTerm]);
