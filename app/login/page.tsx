@@ -1,15 +1,15 @@
+// app/login/page.tsx
+
 "use client";
 
 import { iniciarSesion } from "./actions";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation"; // 🔥 Importar router
 
 export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter(); // 🔥 Usar router de Next.js
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -18,26 +18,16 @@ export default function LoginPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const resultado = await iniciarSesion(formData); // 🔥 Capturar resultado
+      await iniciarSesion(formData);
       
-      console.log("Login exitoso:", resultado);
-      
-      // 🔥 FORZAR REDIRECCIÓN - Prueba estas opciones:
-      
-      // Opción 1: Router de Next.js
-      router.push("/panel");
-      
-      // Opción 2: Si no funciona, descomenta esta línea
-      // window.location.href = "/panel";
-      
-      // Opción 3: Forzar recarga completa
-      // window.location.replace("/panel");
+      // Redirección directa
+      window.location.href = "/panel";
       
     } catch (err: unknown) {
       console.error("Error en login:", err);
       if (err instanceof Error) setError(err.message);
       else setError("Error desconocido");
-      setLoading(false); // Asegurar que loading se desactiva en error
+      setLoading(false);
     }
   }
 

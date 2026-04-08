@@ -41,17 +41,13 @@ export async function iniciarSesion(formData: FormData) {
   try {
     const data = JSON.parse(text);
     
-    // Guardar en localStorage
     if (typeof window !== 'undefined') {
       if (data.empresa) localStorage.setItem("empresa", JSON.stringify(data.empresa));
       if (data.empleado) localStorage.setItem("empleado", JSON.stringify(data.empleado));
       if (data.sucursal) localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
-      
-      // 🔥 IMPORTANTE: Guardar que el usuario está autenticado
       localStorage.setItem("isAuthenticated", "true");
     }
     
-    // 🔥 RETORNAR LOS DATOS EXPLÍCITAMENTE
     return { success: true, data };
   } catch (error) {
     console.error("Error parseando JSON:", error);
