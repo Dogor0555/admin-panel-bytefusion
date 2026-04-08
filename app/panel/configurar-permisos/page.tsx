@@ -4,6 +4,19 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Reload } from "@/app/panel/components/ui/icons/Reload";
+import { Volver } from "@/app/panel/components/ui/icons/volver";
+import { SelectAmbiente } from "./components/ui/icons/SelectAmbiente";
+import { Sucursales } from "./components/ui/icons/Sucursales";
+import {Administradores} from "./components/ui/icons/administradores";
+import { Eliminar } from "./components/ui/icons/Eliminar";
+import { Editar } from "./components/ui/icons/Editar";
+import { Deshabilitar } from "./components/ui/icons/Deshabilitar";
+import { FaCheck } from "react-icons/fa";
+import { Payment } from "./components/ui/icons/Payment";
+
+
+
 
 interface PermisoCatalogo {
   id: number;
@@ -554,7 +567,30 @@ function ConfigurarPermisosContent() {
       setGuardando(false);
     }
   };
+  const enviarRecordatorio = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notificaciones`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        usuario_id: parseInt(usuarioId),
+        nombre: detalleUsuario?.usuario?.nombre || "Cliente",
+      }),
+    });
 
+    const data = await res.json();
+
+    if (data.ok) {
+      alert("Recordatorio enviado ✅");
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
+};
   const handleToggleLimiteActivo = async () => {
     if (!limiteUsuario) return;
 
@@ -726,65 +762,67 @@ function ConfigurarPermisosContent() {
         </div>
       </div>
     );
+
+    
   }
 
   return (
-    <div className="text-black min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="text-black min-screen bg-gray-800 py-8 px-4 sm:px-6 lg:px-8 shadow-md rounded-2xl p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Configurar Usuario
-              </h1>
-              <p className="mt-1 text-gray-600">
-                Usuario ID: <span className="font-semibold">{usuarioId}</span>
-                {detalleUsuario?.usuario && (
-                  <span> - {detalleUsuario.usuario.nombre}</span>
-                )}
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleRecargar}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Recargar
-              </button>
-              <button
-                onClick={handleCancelar}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                Volver al Panel
-              </button>
-            </div>
-          </div>
-          <div className="mt-4 border-t border-gray-200 pt-4 flex space-x-3">
-            <button
-              onClick={handleToggleAmbiente}
-              disabled={guardando}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                ambiente === "01" 
-                  ? "bg-purple-600 hover:bg-purple-700 focus:ring-purple-500" 
-                  : "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500"
-              }`}
-            >
-              {ambiente === "01" ? "Ambiente: Producción" : "Ambiente: Pruebas"}
-            </button>
-            <button
-              onClick={() => setShowListSucursalesModal(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Sucursales
-            </button>
-            <button
-              onClick={() => setShowListAdminsModal(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              Administradores
-            </button>
-          </div>
+
+    <div className="bg-blue-100 backdrop-blur-md border border-gray-200 shadow-xl rounded-2xl p-6 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Configurar Usuario
+          </h1>
+          <p className="mt-1 text-gray-500">
+            Usuario ID: <span className="font-semibold text-gray-800">{usuarioId}</span>
+            {detalleUsuario?.usuario && (
+              <span className="text-gray-600"> • {detalleUsuario.usuario.nombre}</span>
+            )}
+          </p>
         </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleRecargar}
+            className="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition shadow-sm">
+            <Reload className="w-4 h-4 text-gray-600 group-hover:rotate-180 transition-transform duration-500" />
+            Recargar
+          </button>
+
+          <button
+            onClick={handleCancelar}
+            className="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition shadow-sm">
+<Volver className="w-4 h-4 text-gray-600 transition-all duration-200 group-hover:-translate-x-1 group-hover:scale-110" />            Volver al Panel
+          </button>
+        </div>
+
+      </div>
+
+{/* Acciones */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        <SelectAmbiente
+          value={ambiente}
+          onChange={(nuevo) => setAmbiente(nuevo)}
+          disabled={guardando}/>
+          <button
+            onClick={() => setShowListSucursalesModal(true)}
+            className="group flex items-center flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-md hover:scale-[1.02] transition">
+          <Sucursales className="w-5 h-5 opacity-90 group-hover:opacity-100 transition" />  Sucursales
+          </button>
+         
+{ /* El botón de administradores solo se muestra si el usuario tiene permisos para gestionar sucursales o si ya es administrador */}
+
+          <button className="flex items-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg">
+            <Administradores className="w-5 h-5" />
+            Administradores
+          </button>
+
+      </div>
+    </div>
 
         {error && (
           <div className="rounded-md bg-red-50 p-4 mb-6">
@@ -812,7 +850,7 @@ function ConfigurarPermisosContent() {
           </div>
         )}
 
-        <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <div className="bg-blue-100 shadow rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Límite de Emisión DTE
@@ -824,33 +862,58 @@ function ConfigurarPermisosContent() {
             </h2>
             <div className="flex space-x-2">
               {limiteUsuario && (
-                <button
-                  onClick={handleToggleLimiteActivo}
-                  title={limiteUsuario.activo ? "Impide que este usuario emita DTEs" : "Permite que este usuario emita DTEs"}
-                  disabled={guardando}
-                  className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
-                    limiteUsuario.activo
-                      ? 'text-red-700 bg-red-100 hover:bg-red-200 focus:ring-red-500'
-                      : 'text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500'
-                  }`}
-                >
-                  {guardando ? '...' : (limiteUsuario.activo ? 'Deshabilitar Emisión' : 'Habilitar Emisión')}
-                </button>
+<button
+  onClick={handleToggleLimiteActivo}
+  title={
+    limiteUsuario.activo
+      ? "Impide que este usuario emita DTEs"
+      : "Permite que este usuario emita DTEs"
+  }
+  disabled={guardando}
+  className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+    limiteUsuario.activo
+      ? "text-red-700 bg-red-100 hover:bg-red-200 focus:ring-red-500"
+      : "text-green-700 bg-green-100 hover:bg-green-200 focus:ring-green-500"
+  }`}
+>
+  {guardando ? (
+    "..."
+  ) : (
+    <>
+      {limiteUsuario.activo ? (
+        <Deshabilitar size={18} className="text-red-600" />
+      ) : (
+        <FaCheck className="text-green-600 text-sm" />
+      )}
+
+      {limiteUsuario.activo
+        ? "Deshabilitar Emisión"
+        : "Habilitar Emisión"}
+    </>
+  )}
+  
+</button> 
               )}
-              {limiteUsuario && (
-                <button
-                  onClick={handleEliminarLimite}
-                  className="px-3 py-1 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  Eliminar Límite
-                </button>
-              )}
-              <button
-                onClick={() => setMostrarFormularioLimite(!mostrarFormularioLimite)}
-                className="px-3 py-1 text-sm font-medium text-white bg-gray-800 rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
-                {mostrarFormularioLimite ? 'Cancelar Edición' : limiteUsuario ? 'Editar Límite' : 'Configurar Límite'}
-              </button>
+<button
+onClick={enviarRecordatorio}
+  className="cursor-pointer px-3 py-1 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-md transition"
+>
+  <Payment size={18} className=" text-white group-hover:scale-110 transition-transform" />
+   pagar
+</button>
+
+<button
+  onClick={() => setMostrarFormularioLimite(!mostrarFormularioLimite)}
+  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
+>
+  <Editar size={18} className="text-white" />
+
+  {mostrarFormularioLimite
+    ? "Cancelar Edición"
+    : limiteUsuario
+    ? "Editar Límite"
+    : "Configurar Límite"}
+</button>
             </div>
           </div>
 

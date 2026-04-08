@@ -13,15 +13,11 @@ import {
   FaUser,
   FaHeadset,
   FaClock,
-  FaPaperclip,
   FaDownload,
-  FaEdit,
-  FaSave,
   FaTimes,
   FaCircle,
   FaCheck,
   FaComment,
-  FaCheckDouble,
   FaBan,
   FaExpand,
   FaRegClock,
@@ -293,9 +289,17 @@ export default function TicketDetallePanelPage() {
     return () => clearInterval(interval);
   }, [fetchTicket, socketConnected]);
 
-  useEffect(() => {
+useEffect(() => {
+  const container = chatContainerRef.current;
+  if (!container) return;
+
+  const isNearBottom =
+    container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+  if (isNearBottom) {
     scrollToBottom();
-  }, [mensajes]);
+  }
+}, [mensajes]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -411,67 +415,57 @@ export default function TicketDetallePanelPage() {
     }
   };
 
-  const terminarTicket = async () => {
-    if (!ticket) return;
-    
-    if (!confirm("¿Estás seguro que deseas marcar este ticket como resuelto? El cliente podrá volver a abrirlo si tiene más preguntas.")) {
-      return;
-    }
 
-    setTerminandoTicket(true);
-    setError("");
-    setExito("");
 
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/tickets/${id}`, {
+type MotivoCierre = "resuelto" | "no_resuelto" | "sin_respuesta";
+
+const terminarTicket = async (motivo: MotivoCierre = "resuelto") => {
+  if (!ticket || terminandoTicket) return;
+
+  const mensajes = {
+    resuelto: "¿Marcar ticket como RESUELTO?",
+    no_resuelto: "¿Finalizar como NO RESUELTO?",
+    sin_respuesta: "¿Cerrar ticket por FALTA DE RESPUESTA?",
+  };
+
+  if (!confirm(mensajes[motivo])) return;
+
+  setTerminandoTicket(true);
+  setError("");
+  setExito("");
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/tickets/${id}`,
+      {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "resuelto" }),
-      });
+        body: JSON.stringify({
+          estado: "resuelto",
+          motivo_cierre: motivo,
+        }),
+      }
+    );
 
-      if (!response.ok) throw new Error("Error al marcar como resuelto");
+    if (!response.ok) throw new Error("Error al finalizar ticket");
 
-      setExito("✓ Ticket marcado como resuelto");
-      setTimeout(() => setExito(""), 3000);
-      await fetchTicket();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al marcar como resuelto");
-    } finally {
-      setTerminandoTicket(false);
-    }
-  };
+    setExito(
+      motivo === "resuelto"
+        ? "✓ Ticket resuelto"
+        : motivo === "no_resuelto"
+        ? "✓ Ticket finalizado como no resuelto"
+        : "✓ Ticket cerrado por inactividad"
+    );
 
-  const cerrarTicket = async () => {
-    if (!ticket) return;
-    
-    if (!confirm("¿Estás seguro que deseas CERRAR este ticket? Una vez cerrado, el cliente NO podrá volver a abrirlo.")) {
-      return;
-    }
-
-    setTerminandoTicket(true);
-    setError("");
-    setExito("");
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/tickets/${id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "cerrado" }),
-      });
-
-      if (!response.ok) throw new Error("Error al cerrar ticket");
-
-      setExito("✓ Ticket cerrado definitivamente");
-      setTimeout(() => setExito(""), 3000);
-      await fetchTicket();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cerrar ticket");
-    } finally {
-      setTerminandoTicket(false);
-    }
-  };
+    setTimeout(() => setExito(""), 3000);
+    await fetchTicket();
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Error al finalizar");
+  } finally {
+    setTerminandoTicket(false);
+  }
+};
 
   const getEstadoInfo = (estado: string) => {
     switch (estado) {
@@ -876,18 +870,49 @@ export default function TicketDetallePanelPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  {ticket.estado === "resuelto" && (
-                    <span className="text-xs bg-green-500/20 text-green-100 px-3 py-1 rounded-full">
-                      Resuelto
-                    </span>
-                  )}
-                  {ticket.estado === "cerrado" && (
-                    <span className="text-xs bg-gray-500/20 text-gray-200 px-3 py-1 rounded-full">
-                      Cerrado
-                    </span>
-                  )}
-                </div>
+<div className="flex gap-2">
+
+  {puedeTerminar && (
+    <>
+      <button
+        onClick={() => terminarTicket("resuelto")}
+        disabled={terminandoTicket}
+        className="px-3 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg"
+      >
+        ✅ Resolver
+      </button>
+
+      <button
+        onClick={() => terminarTicket("no_resuelto")}
+        disabled={terminandoTicket}
+        className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg"
+      >
+        ❌ No resuelto
+      </button>
+
+      <button
+        onClick={() => terminarTicket("sin_respuesta")}
+        disabled={terminandoTicket}
+        className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+      >
+        ⏳ Sin respuesta
+      </button>
+    </>
+  )}
+
+  {ticket.estado === "resuelto" && (
+    <span className="text-xs bg-green-500/20 text-green-100 px-3 py-1 rounded-full">
+      Resuelto
+    </span>
+  )}
+
+  {ticket.estado === "cerrado" && (
+    <span className="text-xs bg-gray-500/20 text-gray-200 px-3 py-1 rounded-full">
+      Cerrado
+    </span>
+  )}
+
+</div>
               </div>
 
               {/* Área de mensajes */}
