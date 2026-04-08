@@ -76,6 +76,18 @@ export default function Header() {
 
   const { title, Icon } = currentPanel;
 
+  // ✅ Función helper para reproducir y resetear audio
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+        }
+      }).catch(() => {});
+    }
+  };
+
   return (
     <header className="relative flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800 shadow-xl rounded-xl">
       
@@ -102,18 +114,13 @@ export default function Header() {
           <button
             onClick={() => {
               setOpenNotif(!openNotif);
-
-              audioRef.current?.play().then(() => {
-                audioRef.current?.pause();
-                audioRef.current.currentTime = 0;
-              }).catch(() => {});
+              playNotificationSound(); // ✅ Usar la función helper
             }}
             className="relative p-2 rounded-lg hover:bg-gray-800 transition"
           >
             <FaBell className="text-white" />
 
             {notifications.length > 0 && (
-              // 🔥 BADGE LIMPIO (SIN ANIMATE-PING)
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-[2px] rounded-full shadow">
                 {notifications.length}
               </span>
