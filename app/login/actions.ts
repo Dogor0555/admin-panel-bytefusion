@@ -13,11 +13,10 @@ export async function iniciarSesion(formData: FormData) {
     throw new Error("Correo y contraseña son obligatorios");
   }
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // 🔥 FALLBACK: Si no está configurada, usar la URL de producción
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
   
-  if (!API_URL) {
-    throw new Error("API URL no configurada");
-  }
+  console.log("API_URL usada:", API_URL); // Para debugging
 
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -30,7 +29,7 @@ export async function iniciarSesion(formData: FormData) {
   });
 
   const text = await res.text();
-  console.log("Respuesta completa:", text);
+  console.log("Respuesta:", text);
 
   if (!res.ok) {
     let mensaje;
@@ -42,33 +41,16 @@ export async function iniciarSesion(formData: FormData) {
 
   try {
     const data = JSON.parse(text);
-    console.log("Datos parseados:", data);
     
-    // 🔥 IMPORTANTE: Guardar la respuesta en localStorage si es necesario
     if (typeof window !== 'undefined') {
-      if (data.empresa) {
-        localStorage.setItem("empresa", JSON.stringify(data.empresa));
-        console.log("Empresa guardada:", data.empresa);
-      }
-      if (data.empleado) {
-        localStorage.setItem("empleado", JSON.stringify(data.empleado));
-        console.log("Empleado guardado:", data.empleado);
-      }
-      if (data.sucursal) {
-        localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
-        console.log("Sucursal guardada:", data.sucursal);
-      }
-      
-      // Guardar token o lo que necesites
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
+      if (data.empresa) localStorage.setItem("empresa", JSON.stringify(data.empresa));
+      if (data.empleado) localStorage.setItem("empleado", JSON.stringify(data.empleado));
+      if (data.sucursal) localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
     }
     
-    // 🔥 Devolver los datos para que el componente los use
     return data;
   } catch (error) {
     console.error("Error parseando JSON:", error);
-    throw new Error(`Respuesta no válida: ${text.substring(0, 200)}...`);
+    throw new Error(`Respuesta no válida`);
   }
 }
