@@ -13,54 +13,62 @@ export async function iniciarSesion(formData: FormData) {
     throw new Error("Correo y contraseña son obligatorios");
   }
 
-  // 🔥 FORZAR la URL correcta de tu API (cámbiala por la real)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   
-  // 🔥 Probar diferentes endpoints
-  const endpoints = [
-    `${API_URL}/login`,      // Intentar este primero
-    `${API_URL}/api/login`,  // Si no funciona, probar este
-    `${API_URL}/auth/login`, // O este
-  ];
-  
-  let lastError: any = null; // ✅ SOLUCIÓN: Tipar como any o crear una interfaz
-  
-  // Probar cada endpoint
-  for (const endpoint of endpoints) {
+  if (!API_URL) {
+    throw new Error("API URL no configurada");
+  }
+
+  const res = await fetch(`${API_URL}/login`, {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify({ correo, contrasena }),
+    credentials: "include"
+  });
+
+  const text = await res.text();
+  console.log("Respuesta completa:", text);
+
+  if (!res.ok) {
+    let mensaje;
     try {
-      console.log("Intentando:", endpoint);
-      
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ correo, contrasena }),
-        credentials: "include"
-      });
+      mensaje = JSON.parse(text)?.mensaje;
+    } catch {}
+    throw new Error(mensaje || `Error ${res.status}`);
+  }
 
-      const text = await res.text();
-      console.log(`Respuesta de ${endpoint}:`, res.status, text);
-
-      if (res.ok) {
-        try {
-          return JSON.parse(text);
-        } catch {
-          throw new Error(`Respuesta no válida: ${text}...`);
-        }
+  try {
+    const data = JSON.parse(text);
+    console.log("Datos parseados:", data);
+    
+    // 🔥 IMPORTANTE: Guardar la respuesta en localStorage si es necesario
+    if (typeof window !== 'undefined') {
+      if (data.empresa) {
+        localStorage.setItem("empresa", JSON.stringify(data.empresa));
+        console.log("Empresa guardada:", data.empresa);
+      }
+      if (data.empleado) {
+        localStorage.setItem("empleado", JSON.stringify(data.empleado));
+        console.log("Empleado guardado:", data.empleado);
+      }
+      if (data.sucursal) {
+        localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
+        console.log("Sucursal guardada:", data.sucursal);
       }
       
-      lastError = { status: res.status, text, endpoint };
-    } catch (err) {
-      lastError = err;
+      // Guardar token o lo que necesites
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
     }
+    
+    // 🔥 Devolver los datos para que el componente los use
+    return data;
+  } catch (error) {
+    console.error("Error parseando JSON:", error);
+    throw new Error(`Respuesta no válida: ${text.substring(0, 200)}...`);
   }
-  
-  // Si llegamos aquí, todos los endpoints fallaron
-  if (lastError) {
-    throw new Error(`Error ${lastError.status || "desconocido"} en ${lastError.endpoint || "API"}: ${lastError.text || lastError.message}`);
-  }
-  
-  throw new Error("No se pudo conectar con el servidor");
 }
