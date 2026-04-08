@@ -21,7 +21,6 @@ export async function middleware(request: NextRequest) {
   // Ensure we have a backend URL configured
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
   if (!apiBase) {
-    // If no API base, fail closed and redirect to login
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -45,8 +44,16 @@ export async function middleware(request: NextRequest) {
     // Response shape: { ok: true, user: { emailemp: 'juan.perez@sucursal.com', ... } }
     const emailemp = body?.user?.emailemp ?? body?.emailemp;
 
-    const allowedEmail = process.env.ALLOWED_EMP_EMAIL || "juan.perez@sucursal.com";
-    if (!body || !emailemp || emailemp !== allowedEmail) {
+    // Lista de correos permitidos — agregar más separados por coma en la variable de entorno
+    // ALLOWED_EMP_EMAILS=juan.perez@sucursal.com,marcosteven0717@gmail.com
+    const allowedEmails = (
+      process.env.ALLOWED_EMP_EMAILS ||
+      "juan.perez@sucursal.com,marcosteven0717@gmail.com"
+    )
+      .split(",")
+      .map((e) => e.trim().toLowerCase());
+
+    if (!body || !emailemp || !allowedEmails.includes(emailemp.toLowerCase())) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
@@ -59,6 +66,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Apply middleware to all routes (we early-return for public/internal ones)
   matcher: ["/:path*"],
 };
