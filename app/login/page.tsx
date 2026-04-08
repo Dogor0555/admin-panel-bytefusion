@@ -1,5 +1,3 @@
-// app/login/page.tsx
-
 "use client";
 
 import { iniciarSesion } from "./actions";
@@ -18,11 +16,18 @@ export default function LoginPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      await iniciarSesion(formData);
-      
-      // Redirección directa
+      const result = await iniciarSesion(formData);
+
+      // ✅ Aquí sí estamos en el cliente — localStorage funciona correctamente
+      if (result?.data) {
+        const { empresa, empleado, sucursal } = result.data;
+        if (empresa) localStorage.setItem("empresa", JSON.stringify(empresa));
+        if (empleado) localStorage.setItem("empleado", JSON.stringify(empleado));
+        if (sucursal) localStorage.setItem("sucursal", JSON.stringify(sucursal));
+        localStorage.setItem("isAuthenticated", "true");
+      }
+
       window.location.href = "/panel";
-      
     } catch (err: unknown) {
       console.error("Error en login:", err);
       if (err instanceof Error) setError(err.message);

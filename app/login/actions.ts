@@ -1,30 +1,28 @@
-// app/login/actions.ts
-
 "use server";
 
 export async function iniciarSesion(formData: FormData) {
   const correo = formData.get("correo");
   const contrasena = formData.get("contrasena");
 
-  // Validación de correos permitidos
-  if (correo !== "juan.perez@sucursal.com" && correo !== "marcosteven0717@gmail.com") {
-    throw new Error("Usuario no autorizado");
-  }
-
   if (!correo || !contrasena) {
     throw new Error("Correo y contraseña son obligatorios");
+  }
+
+  const allowedEmails = ["juan.perez@sucursal.com", "marcosteven0717@gmail.com"];
+  if (!allowedEmails.includes(correo as string)) {
+    throw new Error("Usuario no autorizado");
   }
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
 
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json"
+      "Accept": "application/json",
     },
     body: JSON.stringify({ correo, contrasena }),
-    credentials: "include"
+    credentials: "include",
   });
 
   const text = await res.text();
@@ -39,17 +37,9 @@ export async function iniciarSesion(formData: FormData) {
 
   try {
     const data = JSON.parse(text);
-    
-    // Guardar en localStorage
-    if (typeof window !== 'undefined') {
-      if (data.empresa) localStorage.setItem("empresa", JSON.stringify(data.empresa));
-      if (data.empleado) localStorage.setItem("empleado", JSON.stringify(data.empleado));
-      if (data.sucursal) localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
-      localStorage.setItem("isAuthenticated", "true");
-    }
-    
+    // Solo retorna los datos — el cliente se encarga de guardar en localStorage
     return { success: true, data };
-  } catch (error) {
+  } catch {
     throw new Error("Respuesta no válida del servidor");
   }
 }
