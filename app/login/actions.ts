@@ -9,6 +9,10 @@ export async function iniciarSesion(formData: FormData) {
     throw new Error("Usuario no autorizado");
   }
 
+  if (!correo || !contrasena) {
+    throw new Error("Correo y contraseña son obligatorios");
+  }
+
   // 🔥 FORZAR la URL correcta de tu API (cámbiala por la real)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
   
@@ -19,7 +23,7 @@ export async function iniciarSesion(formData: FormData) {
     `${API_URL}/auth/login`, // O este
   ];
   
-  let lastError = null;
+  let lastError: any = null; // ✅ SOLUCIÓN: Tipar como any o crear una interfaz
   
   // Probar cada endpoint
   for (const endpoint of endpoints) {
