@@ -46,31 +46,31 @@ interface PanelPageProps {
 export default function PanelPage({ usuarios }: PanelPageProps) {
   const router = useRouter();
   
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("empleado");
-      if (!raw) return;
-      const empleado = JSON.parse(raw);
-      
-      // 🔥 MODIFICADO: Permitir AMBOS correos
-      const correosPermitidos = ["juan.perez@sucursal.com", "marcosteven0717@gmail.com"];
-      
-      if (!correosPermitidos.includes(empleado?.correo)) {
-        localStorage.removeItem("empleado");
-        localStorage.removeItem("empresa");
-        localStorage.removeItem("sucursal");
-        localStorage.removeItem("isAuthenticated");
-        window.location.href = "https://www.bytefusionsv.com";
-      }
-    } catch (e) {
-      console.error("Error validando empleado:", e);
-      localStorage.removeItem("empleado");
-      localStorage.removeItem("empresa");
-      localStorage.removeItem("sucursal");
-      localStorage.removeItem("isAuthenticated");
-      window.location.href = "https://www.bytefusionsv.com";
-    }
-  }, []);
+  // 🔥 VALIDACIÓN DESACTIVADA TEMPORALMENTE PARA PERMITIR AMBOS CORREOS
+  // useEffect(() => {
+  //   try {
+  //     const raw = localStorage.getItem("empleado");
+  //     if (!raw) return;
+  //     const empleado = JSON.parse(raw);
+  //     
+  //     const correosPermitidos = ["juan.perez@sucursal.com", "marcosteven0717@gmail.com"];
+  //     
+  //     if (!correosPermitidos.includes(empleado?.correo)) {
+  //       localStorage.removeItem("empleado");
+  //       localStorage.removeItem("empresa");
+  //       localStorage.removeItem("sucursal");
+  //       localStorage.removeItem("isAuthenticated");
+  //       window.location.href = "https://www.bytefusionsv.com";
+  //     }
+  //   } catch (e) {
+  //     console.error("Error validando empleado:", e);
+  //     localStorage.removeItem("empleado");
+  //     localStorage.removeItem("empresa");
+  //     localStorage.removeItem("sucursal");
+  //     localStorage.removeItem("isAuthenticated");
+  //     window.location.href = "https://www.bytefusionsv.com";
+  //   }
+  // }, []);
   
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(false);
