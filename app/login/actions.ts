@@ -1,3 +1,4 @@
+// app/login/actions.ts
 "use server";
 
 export async function iniciarSesion(formData: FormData) {
@@ -6,11 +7,6 @@ export async function iniciarSesion(formData: FormData) {
 
   if (!correo || !contrasena) {
     throw new Error("Correo y contraseña son obligatorios");
-  }
-
-  const allowedEmails = ["juan.perez@sucursal.com", "marcosteven0717@gmail.com"];
-  if (!allowedEmails.includes(correo as string)) {
-    throw new Error("Usuario no autorizado");
   }
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
@@ -22,7 +18,7 @@ export async function iniciarSesion(formData: FormData) {
       "Accept": "application/json",
     },
     body: JSON.stringify({ correo, contrasena }),
-    credentials: "include",
+    // NO USAR credentials: "include" en Server Action
   });
 
   const text = await res.text();
@@ -37,7 +33,7 @@ export async function iniciarSesion(formData: FormData) {
 
   try {
     const data = JSON.parse(text);
-    // Solo retorna los datos — el cliente se encarga de guardar en localStorage
+    // Devolver los datos, PERO NO las cookies
     return { success: true, data };
   } catch {
     throw new Error("Respuesta no válida del servidor");

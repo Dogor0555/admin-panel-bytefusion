@@ -1,10 +1,11 @@
+// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public and internal Next paths without checking
+  // Allow public paths
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/api") ||
@@ -15,45 +16,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Read cookie header from the incoming request
+  // Get the cookie from the request
   const cookieHeader = request.headers.get("cookie") || "";
-
-  // Ensure we have a backend URL configured
+  
+  // Check if the user is authenticated by calling your backend
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  
   if (!apiBase) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
   try {
-    const resp = await fetch(`${apiBase}/auth/check-cookie`, {
+    const resp = await fetch(`${apiBase}/checkAuth`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Cookie: cookieHeader,
+        "Cookie": cookieHeader,
       },
     });
 
     if (!resp.ok) {
-      const loginUrl = new URL("/login", request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    const body = await resp.json().catch(() => null);
-
-    // Response shape: { ok: true, user: { emailemp: 'juan.perez@sucursal.com', ... } }
-    const emailemp = body?.user?.emailemp ?? body?.emailemp;
-
-    // Lista de correos permitidos — agregar más separados por coma en la variable de entorno
-    // ALLOWED_EMP_EMAILS=juan.perez@sucursal.com,marcosteven0717@gmail.com
-    const allowedEmails = (
-      process.env.ALLOWED_EMP_EMAILS ||
-      "juan.perez@sucursal.com,marcosteven0717@gmail.com"
-    )
-      .split(",")
-      .map((e) => e.trim().toLowerCase());
-
-    if (!body || !emailemp || !allowedEmails.includes(emailemp.toLowerCase())) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }

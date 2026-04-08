@@ -1,3 +1,4 @@
+// app/login/page.tsx
 "use client";
 
 import { iniciarSesion } from "./actions";
@@ -16,18 +17,46 @@ export default function LoginPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const result = await iniciarSesion(formData);
+      const correo = formData.get("correo") as string;
+      const contrasena = formData.get("contrasena") as string;
 
-      // ✅ Aquí sí estamos en el cliente — localStorage funciona correctamente
-      if (result?.data) {
-        const { empresa, empleado, sucursal } = result.data;
+      // ✅ HACER EL FETCH DIRECTAMENTE DESDE EL CLIENTE
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
+      
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ correo, contrasena }),
+        credentials: "include", // ✅ ESTO ES CRÍTICO - guarda cookies en el navegador
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        let mensaje;
+        try {
+          mensaje = JSON.parse(text)?.mensaje;
+        } catch {}
+        throw new Error(mensaje || `Error ${response.status}`);
+      }
+
+      const data = JSON.parse(text);
+      
+      // Guardar datos en localStorage
+      if (data) {
+        const { empresa, empleado, sucursal } = data;
         if (empresa) localStorage.setItem("empresa", JSON.stringify(empresa));
         if (empleado) localStorage.setItem("empleado", JSON.stringify(empleado));
         if (sucursal) localStorage.setItem("sucursal", JSON.stringify(sucursal));
         localStorage.setItem("isAuthenticated", "true");
       }
 
+      // Redirigir al panel
       window.location.href = "/panel";
+      
     } catch (err: unknown) {
       console.error("Error en login:", err);
       if (err instanceof Error) setError(err.message);
@@ -85,24 +114,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-white transition hover:scale-110 active:scale-95"
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  {showPassword ? (
-                    <motion.span key="hide" initial={{ opacity: 0, scale: 0.7, rotate: -90 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.7, rotate: 90 }} transition={{ duration: 0.25 }} className="flex">
-                      <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                        <g stroke="currentColor" strokeWidth="2">
-                          <path d="M6.887 5.172c.578-.578.867-.868 1.235-1.02S8.898 4 9.716 4h4.61c.826 0 1.239 0 1.61.155c.37.155.66.45 1.239 1.037l1.674 1.699c.568.576.852.865 1.002 1.23c.149.364.149.768.149 1.578v4.644c0 .818 0 1.226-.152 1.594s-.441.656-1.02 1.235l-1.656 1.656c-.579.579-.867.867-1.235 1.02c-.368.152-.776.152-1.594.152H9.7c-.81 0-1.214 0-1.579-.15c-.364-.149-.653-.433-1.229-1.001l-1.699-1.674c-.588-.58-.882-.87-1.037-1.24S4 15.152 4 14.326v-4.61c0-.818 0-1.226.152-1.594s.442-.657 1.02-1.235z"/>
-                          <path strokeLinecap="round" d="m8 11l.422.211a8 8 0 0 0 7.156 0L16 11m-4 1.5V14m-3-2l-.5 1m6.5-1l.5 1"/>
-                        </g>
-                      </svg>
-                    </motion.span>
-                  ) : (
-                    <motion.span key="show" initial={{ opacity: 0, scale: 0.7, rotate: 90 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.7, rotate: -90 }} transition={{ duration: 0.25 }} className="flex">
-                      <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor">
-                        <path d="M176 32c-20.61 0-38.28 18.16-48 45.85C118.28 50.16 100.61 32 80 32c-31.4 0-56 42.17-56 96s24.6 96 56 96c20.61 0 38.28-18.16 48-45.85c9.72 27.69 27.39 45.85 48 45.85c31.4 0 56-42.17 56-96s-24.6-96-56-96m-69.08 154.39C99.43 200.12 89.62 208 80 208s-19.43-7.88-26.92-21.61a104.8 104.8 0 0 1-10.24-29.23a32 32 0 1 0 0-58.32a104.8 104.8 0 0 1 10.24-29.23C60.57 55.88 70.38 48 80 48s19.43 7.88 26.92 21.61C115.35 85.07 120 105.81 120 128s-4.65 42.93-13.08 58.39m96 0C195.43 200.12 185.62 208 176 208s-19.43-7.88-26.92-21.61a104.8 104.8 0 0 1-10.24-29.23a32 32 0 1 0 0-58.32a104.8 104.8 0 0 1 10.24-29.23C156.57 55.88 166.38 48 176 48s19.43 7.88 26.92 21.61C211.35 85.07 216 105.81 216 128s-4.65 42.93-13.08 58.39"/>
-                      </svg>
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {/* Icono del ojo - mantén tu código existente */}
               </button>
             </div>
           </div>
