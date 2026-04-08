@@ -13,10 +13,9 @@ export async function iniciarSesion(formData: FormData) {
     throw new Error("Correo y contraseña son obligatorios");
   }
 
-  // 🔥 FALLBACK: Si no está configurada, usar la URL de producción
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.bytefusionsv.com";
   
-  console.log("API_URL usada:", API_URL); // Para debugging
+  console.log("API_URL usada:", API_URL);
 
   const res = await fetch(`${API_URL}/login`, {
     method: "POST",
@@ -42,13 +41,18 @@ export async function iniciarSesion(formData: FormData) {
   try {
     const data = JSON.parse(text);
     
+    // Guardar en localStorage
     if (typeof window !== 'undefined') {
       if (data.empresa) localStorage.setItem("empresa", JSON.stringify(data.empresa));
       if (data.empleado) localStorage.setItem("empleado", JSON.stringify(data.empleado));
       if (data.sucursal) localStorage.setItem("sucursal", JSON.stringify(data.sucursal));
+      
+      // 🔥 IMPORTANTE: Guardar que el usuario está autenticado
+      localStorage.setItem("isAuthenticated", "true");
     }
     
-    return data;
+    // 🔥 RETORNAR LOS DATOS EXPLÍCITAMENTE
+    return { success: true, data };
   } catch (error) {
     console.error("Error parseando JSON:", error);
     throw new Error(`Respuesta no válida`);
